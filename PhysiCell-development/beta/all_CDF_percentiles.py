@@ -1,4 +1,5 @@
 
+import sys
 import os
 import glob
 from pyMCDS import pyMCDS
@@ -14,20 +15,35 @@ def fix_hist_step_vertical_line_at_end(ax):
         new_vertices = poly.get_xy()[:-1]
         poly.set_xy(new_vertices)
 
-max_runs = 2
-max_runs = 100
+argc=len(sys.argv)
+print("argc= ",argc)
+if argc < 5:
+    print("Missing <num_runs> <cdf_dir> <dir_prefix> <f_i or a_i>")
+    print("e.g., 100 cdf_1000cells out_cells1000_  a_i")
+    sys.exit()
+
+print('argv[0]=',sys.argv[0])
+# cell_scalar_name = sys.argv[1]
+print('argv[1]=',sys.argv[1])
+max_runs = int(sys.argv[1])
+output_dir_base = sys.argv[2]
+dir_prefix = sys.argv[3]
+cell_scalar_name = sys.argv[4]
+
+# max_runs = 2
+# max_runs = 100
 # max_runs = 10
 # output_dir_base = "cdf_100cells"
 # total_count = max_runs * 100
-suffix = "1000"
-suffix = "200"
+# suffix = "1000"
+# suffix = "200"
 # output_dir_base = "cdf_1000cells"
 # output_dir_base = "cdf_200cells"
-output_dir_base = f"cdf_{suffix}cells"
-output_dir_base += "_slowgrowth_vol2494"
+# output_dir_base = f"cdf_{suffix}cells"
+# output_dir_base += "_slowgrowth_vol2494"
 # total_count = max_runs * 1000   # turns out we don't need/want this!
-cell_scalar_name = "f_i"    # surface fraction overlap with nbrs  (~gamma)
-cell_scalar_name = "a_i"    # area fraction overlap with nbrs  (~beta)
+# cell_scalar_name = "f_i"    # surface fraction overlap with nbrs  (~gamma)
+# cell_scalar_name = "a_i"    # area fraction overlap with nbrs  (~beta)
 
 # fig, ax = plt.subplots()
 # fig = plt.figure(figsize=(7, 5))
@@ -41,14 +57,15 @@ for idx in range(max_runs):  # for each of the dirs/replicate runs
     #     output_dir = output_dir_base + f'/bg00_cells1000_{idx}'
     # elif output_dir_base == "cdf_200cells":
     #     output_dir = output_dir_base + f'/bg00_cells200_{idx}'
-    output_dir = output_dir_base + f'/bg00_cells{suffix}_{idx}'
+    # output_dir = output_dir_base + f'/bg00_cells{suffix}_{idx}'
+    output_dir = f'{output_dir_base}/{dir_prefix}{idx}'
     print(idx,")  ------- output_dir= ",output_dir)
     xml_pattern = output_dir + "/" + "output*.xml"
     xml_files = glob.glob(xml_pattern)
     xml_files.sort()
-    # print("xml_files= ",xml_files)
+    print("xml_files= ",xml_files)
     last_file = xml_files[-1]
-    # print("-------- last_file =",last_file )
+    print("-------- last_file =",last_file )
     xml_file_root = os.path.basename(last_file)
     # print("xml_file_root =",xml_file_root )
     print
@@ -109,7 +126,8 @@ plt.xlabel(cell_scalar_name )
 #     plt.ylabel("counts (1000 cells x 100 runs)")
 # elif output_dir_base == "cdf_200cells":
 #     plt.ylabel("counts (200 cells x 100 runs)")
-plt.ylabel(f"counts ({suffix} cells x 100 runs)")
+#plt.ylabel(f"counts ({suffix} cells x 100 runs)")
+plt.ylabel(f"counts ({1000} cells x {max_runs} runs)")
 # if (cell_scalar_name == "f_i"):
 #     plt.xlabel("Surface fraction ($\\gamma$)")   # f_i
 # elif (cell_scalar_name == "a_i"):
@@ -122,7 +140,8 @@ plt.ylabel(f"counts ({suffix} cells x 100 runs)")
 #     # plt.title("PhysiCell: histogram of area fractions ($\\beta = \\gamma = 0$)")
 #     plt.title("PhysiCell: {cell_scalar_name } (N=1000)")
 
-title_str = f"PhysiCell: {cell_scalar_name}  (N={suffix})"
+# title_str = f"PhysiCell: {cell_scalar_name}  (N={max_runs})"
+title_str = f"PhysiCell: {cell_scalar_name}"
 plt.title(title_str)
 # plt.legend()
 # plt.xlim(right=1.0)
@@ -174,6 +193,6 @@ plt.grid(True)
 # plt.axis('square')
 # plt.axis('equal')
 # fix_hist_step_vertical_line_at_end(ax)
-title_str = f"PhysiCell: {cell_scalar_name}  (N={suffix})"
+title_str = f"PhysiCell: {cell_scalar_name}  (N={max_runs})"
 plt.title(title_str)
 plt.show()

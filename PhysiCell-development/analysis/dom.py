@@ -138,28 +138,28 @@ axs[0, 0].set_xlim(xlims1)
 xlims2 = (-0.01, 1.01)
 cmap = plt.cm.inferno_r
 # Area fraction stacked histogram
-axs[0, 1].hist(stacked_af, bins=np.arange(xlims2[0], xlims2[1], 0.01), stacked=True, label=labels, edgecolor='none', color=cmap(np.linspace(0, 1, len(labels))), density=False)
-axs[0, 1].set_title('PDF of Area Fractions')
-axs[0, 1].set_xlabel('Area Fraction (β)')
-axs[0, 1].set_ylabel('Number of Cells')
-# axs[0, 1].set_yscale('log')
+axs[1, 0].hist(stacked_af, bins=np.arange(xlims2[0], xlims2[1], 0.01), stacked=True, label=labels, edgecolor='none', color=cmap(np.linspace(0, 1, len(labels))), density=False)
+axs[1, 0].set_title('PDF of Area Fractions')
+axs[1, 0].set_xlabel('Area Fraction (β)')
+axs[1, 0].set_ylabel('Number of Cells')
+# axs[1, 0].set_yscale('log')
 # axs[1].axvline(x=p_beta, color='red', linestyle='--', label='β Th.')
-axs[0, 1].legend(title='Distance', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
-axs[0, 1].set_xlim(xlims2)
+axs[1, 0].legend(title='Distance', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
+axs[1, 0].set_xlim(xlims2)
 
 
 # Surface fraction stacked histogram
 # xlims1 = (0.7, 1.001)
 cmap = plt.cm.viridis_r
-axs[1, 0].hist(stacked_sf, bins=np.arange(xlims1[0], xlims1[1], 0.01), stacked=True, label=labels, edgecolor='none', color=cmap(np.linspace(0, 1, len(labels))), density=False, cumulative=True)
-axs[1, 0].set_title('CDF of Surface Fractions')
-axs[1, 0].set_xlabel('Surface Fraction (γ)')
-axs[1, 0].set_ylabel('Number of Cells')
+axs[0, 1].hist(stacked_sf, bins=np.arange(xlims1[0], xlims1[1], 0.01), stacked=True, label=labels, edgecolor='none', color=cmap(np.linspace(0, 1, len(labels))), density=False, cumulative=True)
+axs[0, 1].set_title('CDF of Surface Fractions')
+axs[0, 1].set_xlabel('Surface Fraction (γ)')
+axs[0, 1].set_ylabel('Number of Cells')
 # axs[0].set_yscale('log')
 # axs[0].axvline(x=p_gamma, color='red', linestyle='--', label='γ Th.')
-axs[1, 0].legend(title='Distance', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
+axs[0, 1].legend(title='Distance', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize='small')
 # set axis limits
-axs[1, 0].set_xlim(xlims1)
+axs[0, 1].set_xlim(xlims1)
 # axs[0].set_ylim(1, None)
 
 

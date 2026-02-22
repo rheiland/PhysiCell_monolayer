@@ -174,7 +174,7 @@ plt.plot(X1[1:], F1, 'b')   # smooth plot
 # plt.axvline(x=q2, color='b', linestyle='--', label="50th Percentile (Median)")
 #plt.axvline(x=p95, color='r', linestyle='--', label="95th Percentile")
 
-if cell_scalar_name == "f_i":   # surface fraction
+if cell_scalar_name == "f_i":   # surface fraction; gamma
     # Want: gamma=0%,95%,98%,99%,99.5% of the CDF(f)
     p1 = np.percentile(all_vals, 0)
     p2 = np.percentile(all_vals, 95)
@@ -183,7 +183,7 @@ if cell_scalar_name == "f_i":   # surface fraction
     p5 = np.percentile(all_vals, 99.5)
     # x values for %s:  0.0 0.6826579410327743 0.7798234907576538 0.815967178524139 0.8690718408878354
 
-else:  # a_i  (surface area)
+else:  # a_i  (surface area; beta)
     # Want: beta=0%,50%,90%,95%,99% of the CDF(a)
     p1 = np.percentile(all_vals, 0)
     p2 = np.percentile(all_vals, 50)
@@ -193,7 +193,7 @@ else:  # a_i  (surface area)
     # x values for %s:  0.09078247087111796 0.7660009980054924 0.9470058462593367 0.9704404178018855 0.9865976851655481
 
 
-print("x values for %s: ",p1,p2,p3,p4,p5)
+print(f"x values for %s: {p1:.5f}, {p2:.5f}, {p3:.5f}, {p4:.5f}, {p5:.5f}")
 
     # Want: gamma=0%,95%,98%,99%,99.5% of the CDF(f)
     # Want: beta=0%,50%,90%,95%,99% of the CDF(a)
@@ -229,6 +229,6 @@ plt.grid(True)
 if cell_scalar_name == "f_i":
     title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 95, 98, 99, 99.5"
 else:
-    title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 95, 98, 99, 99.5"
+    title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 50, 90, 95, 99"
 plt.title(title_str)
 plt.show()

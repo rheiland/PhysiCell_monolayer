@@ -1,8 +1,24 @@
 """
-Agent-Based Model: Growing and Dividing Agents
-================================================
-Each agent has a position (x, y), a area, and a constant growth rate.
-When an agent's area exceeds a threshold, it divides into two daughter agents.
+Growing monolayer model in Python 
+=================================
+
+This initial version has no contact inhibition. The goal is to understand why PhysiCell seems
+to differ from Chaste, in terms of overcrowding/overlapping cells in the center of the monolayer
+when it gets too large.
+
+* Cell size maintenance (parameter: target cell area A_0(t))
+* start with a single cell at the origin, with area = A_0(t)
+* Cell growth (parameters: linear growth rate α)
+* Cell division: cells divide when A(t) = X * A_0(0) 
+  (parameter:  X ∼ N(2, 0.4^2), truncated such that X > 0, 
+   redraw X otherwise). 
+   Observable for an isolated cell: cell cycle duration T = A0(0)/α)
+
+
+This is the slower implementation of the model, to hopefully make it more obvious how
+cells grow and divide. (The faster version is abm.py, uses numpy, and is a bit more challenging to see
+the details.)
+
 """
 
 import math
@@ -30,9 +46,7 @@ class Agent:
         growth_rate   : Rate at which the area increases per time step (units/step).
         division_area : area at which the agent divides.
         norm_rand     : X ∼ N(2, 0.4^2), truncated such that X > 0, redraw X otherwise
-        agent_id      : Unique identifier.
-        parent_id     : ID of the parent agent (None for seed agents).
-        generation    : Number of divisions from the original ancestor.
+        ID            : unique integer identifier
     """
     x: float
     y: float
@@ -42,8 +56,6 @@ class Agent:
     growth_rate: float = 0.1778   # microns^2(?)/min  0.05
     division_area: float = 157.08        # division area=7.07
     norm_rand: float = 2.0
-    agent_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
-    parent_id: Optional[str] = None
     ID: int = 0
     time_step: int = 0
 
@@ -52,8 +64,6 @@ class Agent:
         self.area += self.growth_rate
         self.time_step += 1
         # if self.time_step % 5 == 0:
-        if False: # self.ID == 0:
-            print(f"grow(): ID=0, time_step={self.time_step}, {self.agent_id}: area= {self.area}")
 
     def should_divide(self) -> bool:
         """Return True if this agent has reached or exceeded its division area."""
@@ -64,74 +74,21 @@ class Agent:
         """
         Divide this agent into two daughter agents.
 
-        The daughters are placed symmetrically around the parent's position,
-        each with half the parent's volume (area scaled by 1/cbrt(2)).
-
-        Args:
-            separation: Extra offset distance for daughter placement beyond
-                        their initial area (prevents immediate overlap).
-            noise:      Random angular perturbation (radians) so divisions
-                        aren't always perfectly axis-aligned.
+        The daughters have 1/2 the area of the parent. One daughter remains in the parent's position;
+        the other daughter is placed at a random position around the other, so they just touch.
 
         Returns:
             A tuple of two new Agent instances (daughter_1, daughter_2).
         """
-        # Daughter area: conserve volume in 2D (area), so r_d = r / sqrt(2)
-        # daughter_area = self.area / math.sqrt(2)
+
         daughter_area = self.area / 2
         daughter_radius = math.sqrt(daughter_area/math.pi)
-        # print(f"-- divide(): ID={self.ID}, separation={separation}, daughter_area={daughter_area } ")
-        # print(f"-- divide(): ID={self.ID}, daughter_area={daughter_area}, daughter_radius={daughter_radius}   ")
-
-        # Random division axis with optional noise
-        # angle = random.uniform(0, 2 * math.pi)
-
-        # In PhysiCell _utilities() UniformOnUnitSphere: get random vector, 
-        # double z = UniformRandom();
-        # z *= 2.0; 
-        # z -= 1.0; // Choose z uniformly distributed in [-1,1].
-        #
-        # theta = UniformRandomm();
-        # theta *= two_pi;
-        # 
 
         max_ID += 1
-        # print("   max_ID=",max_ID)
-        theta = random.uniform(0,1)
-        # if max_ID == 1:
-        #     theta = 0  # rwh: dummy test
-        # if max_ID >= 2:
-        #     # theta = 0.7854
-        #     theta = 1.5708
-        # theta *= 6.283185307179
-        # theta = 0.
-
-        # Offset each daughter by daughter_area + separation along the axis
-        # radius = math.sqrt(daughter_area/math.pi)
-        # offset = radius + separation
-        # dx = offset * math.cos(angle)
-        # dy = offset * math.sin(angle)
-
-        radius = math.sqrt(self.area/math.pi)
-        # print(f"  self.area= {self.area}, --> radius= {radius}")
 
         theta = random.random() * 2 * math.pi
         xv = math.cos(theta) * daughter_radius
         yv = math.sin(theta) * daughter_radius
-
-        # xv = math.cos(theta)
-        # yv = math.sin(theta)
-        # print("  xv,yv= ",xv,yv)
-
-        # this makes it so the daughter cells overlap
-        # radius = math.sqrt(daughter_area/math.pi)
-        # xv *= radius
-        # yv *= radius
-
-        # this makes it so the cells are kissing (just touching)
-        # xv *= 2*daughter_radius
-        # yv *= 2*daughter_radius
-        # print("  r-scaled xv,yv= ",xv,yv)
 
         nr1 = random.normalvariate(mu=2.0, sigma=0.4)   # mean=2, stddev=0.4
         while nr1 < 0:
@@ -156,25 +113,24 @@ class Simulation:
     Manages a population of Agents over discrete time steps.
 
     At each step:
-      1. Every agent grows.
-      2. Agents that exceed division_area are replaced by two daughters.
+      1. Each cell grows
+      2. Cells that exceed division_area are replaced by two daughters.
     """
 
+    # Relevant parameter values will be passed in
     def __init__(
         self,
-        n_seed: int = 1,
-        growth_rate: float = 0.05,
-        division_area: float = 2.0,
-        norm_rand: float = 2.0,
-        initial_area: float = 1.0,
+        n_seed: int = 0,
+        growth_rate: float = 0.0,
+        division_area: float = 0.0,
+        norm_rand: float = 0.0,
+        initial_area: float = 0.0,
     ):
         self.agents: list[Agent] = [
             Agent(
-                # x=random.uniform(-spawn_range, spawn_range),
-                # y=random.uniform(-spawn_range, spawn_range),
-                x=0,
+                x=0,   # position
                 y=0,
-                vel_x=0,
+                vel_x=0,   # velocity
                 vel_y=0,
                 area=initial_area,
                 growth_rate=growth_rate,
@@ -185,9 +141,6 @@ class Simulation:
         ]
         self.time: int = 0
         # self.history: list[dict] = []
-
-    def update_cell_velocity(self) -> None:
-        return
 
     def step(self) -> int:
         """
@@ -225,7 +178,7 @@ class Simulation:
             agent.vel_x = 0
             agent.vel_y = 0
             for agent2 in self.agents:
-                if agent.agent_id != agent2.agent_id:
+                if agent.ID != agent2.ID:
                     # displacement[i] = position[i] - (*other_agent).position[i]; 
                     xdel = agent.x - agent2.x   # "displacement" vector in C++
                     ydel = agent.y - agent2.y
@@ -241,7 +194,7 @@ class Simulation:
                         if dist > R:
                             temp_r = 0
                         else:
-                            # print(f"update velocity of cell {agent.agent_id} due to nbr {agent.agent_id}")
+                            # print(f"update velocity of cell {agent.ID} due to nbr {agent.ID}")
                             temp_r = -dist  # -d
                             temp_r /= R # -d/R
                             temp_r += 1.0 # 1-d/R
@@ -250,6 +203,7 @@ class Simulation:
                             # add the relative pressure contribution 
                             # state.simple_pressure += ( temp_r / simple_pressure_scale ); // New July 2017 
 
+                        # PhysiCell C++ code
                         # double effective_repulsion = sqrt( phenotype.mechanics.cell_cell_repulsion_strength * other_agent->phenotype.mechanics.cell_cell_repulsion_strength ); 
                         # effective_repulsion = math.sqrt(cell_cell_repulsion_strength * cell_cell_repulsion_strength) 
                         # effective_repulsion = cell_cell_repulsion_strength  
@@ -270,20 +224,12 @@ class Simulation:
                             # print(f"--ID={agent.ID}, step={self.time}: update velocity for {agent.agent_id}: vel_x={agent.vel_x}, _y={agent.vel_y}")
                             # print(f"--step={self.time}: update velocity for {agent.ID}: vel_x={agent.vel_x}, _y={agent.vel_y}")
 
-        # 3) Update each agent's position
+        # 3) Update each agent's position with its velocity
         for agent in self.agents:
             agent.x += agent.vel_x
             agent.y += agent.vel_y
 
-        # self.agents = survivors
         self.time += 1
-
-        # self.history.append({
-        #     "time": self.time,
-        #     "population": len(self.agents),
-        #     "divisions": divisions,
-        #     "mean_area": sum(a.area for a in self.agents) / len(self.agents),
-        # })
 
         return divisions
 
@@ -295,11 +241,13 @@ class Simulation:
             steps:      Maximum number of time steps to run.
             max_agents: Stop early if population exceeds this threshold.
         """
+
         for _ in range(steps):
             self.step()
             if len(self.agents) >= max_agents:
                 print(f"  Stopped early at t={self.time}: {len(self.agents)} agents.")
                 break
+
 
     def precompute(self, steps: int, max_agents: int = 500) -> None:
         """
@@ -324,19 +272,17 @@ class Simulation:
 
         print(f"done. {len(self._frames)} frames stored.")
 
-        # save final results in .csv
+        # save final results in .csv for post-processing, e.g., to compute f_i and a_i
         file_out = f'py_monolayer_small.csv'
         print("--> ",file_out)
         with open(file_out, "w", newline="") as file:
             writer = csv.writer(file)
 
-            # Write each row: x,y,g,n  (where g=growing (0/1), n=# of nbrs)
-            # writer.writerow(['x_pos','y_pos','radius_i','f_i','a_i'])
             writer.writerow(['x_pos','y_pos','radius_i','norm_rand_i'])
             for agent in self.agents:
                 # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
                 radius = math.sqrt(agent.area / math.pi)
-                writer.writerow([agent.x,agent.y,radius,agent.norm_rand])
+                writer.writerow([agent.x, agent.y, radius, agent.norm_rand])
 
 
     def interactive_viewer(self, title: str = "Agent-Based Model", interval: int = 100) -> None:
@@ -360,16 +306,9 @@ class Simulation:
         n_frames   = len(frames)
         cmap       = plt.cm.plasma
 
-        # ------------------------------------------------------------------ #
-        # Layout: plots occupy the top 80 %, widgets the bottom 20 %
-        # ------------------------------------------------------------------ #
-        # fig = plt.figure(figsize=(15, 8), facecolor="#0d0d0d")
-        # fig = plt.figure(figsize=(12, 6), facecolor="#0d0d0d")
         fig = plt.figure(figsize=(6, 6), facecolor="#0d0d0d")
         fig.suptitle(title, fontsize=13, fontweight="bold", color="white")
 
-        # One data axes
-        # ax_space = fig.add_axes([0.04, 0.22, 0.46, 0.70])   # left: spatial
         ax_space = fig.add_axes([0.1, 0.2, 0.8, 0.7])   # left: spatial: left, bottom, w, h)
 
         ax_space.set_facecolor("#111111")
@@ -386,12 +325,13 @@ class Simulation:
         # Stable world bounds (union of all frame extents)
         all_x = [a.x for f in frames for a in f]
         all_y = [a.y for f in frames for a in f]
-        max_r = max((a.area for f in frames for a in f), default=1)  # now doing area, not radii
-        pad   = max_r * 2
+        # max_r = max((a.area for f in frames for a in f), default=1)  # now doing area, not radii
+        # pad   = max_r * 2
         pad   = 20
         # ax_space.set_xlim(min(all_x) - pad, max(all_x) + pad)
         # ax_space.set_ylim(min(all_y) - pad, max(all_y) + pad)
-        win_size = 100  # rwh
+
+        win_size = 100  # rwh: hard-code for now
         ax_space.set_xlim(-win_size, win_size)
         ax_space.set_ylim(-win_size, win_size)
 
@@ -520,12 +460,11 @@ if __name__ == "__main__":
     random.seed(42)
 
     sim = Simulation(
-        n_seed=1,           # Start with n agents
-        # growth_rate=0.1778,   # micron^2 / min
-        growth_rate=0.1778,   # 0.889 original;  5x slower=0.1778  (micron^2 / min)
-        division_area=157.08,  #  vs. double area = 2 * 78.54 = 157.08
-        norm_rand=2.0,  #  X ~ N(2, 0.4^2)
-        initial_area=78.54,   #  area = pi * r^2 = pi * 25 = 78.54
+        n_seed= 1,              # Start with n agents
+        growth_rate= 0.1778,    # 0.889 original;  5x slower=0.1778  (micron^2 / min)
+        division_area= 157.08,  #  vs. double area = 2 * 78.54 = 157.08
+        norm_rand= 2.0,         #  X ~ N(2, 0.4^2)
+        initial_area= 78.54,    #  area = pi * r^2 = pi * 25 = 78.54
     )
 
     # 1. Pre-compute all frames (enables backward scrubbing)
@@ -534,5 +473,5 @@ if __name__ == "__main__":
     # 2. Open the interactive widget viewer
     sim.interactive_viewer(
         title="Growing Monolayer",
-        interval=1,   # 120,   # rwh: ms between auto-play frames
+        interval=1,   # rwh: ms between auto-play frames
     )

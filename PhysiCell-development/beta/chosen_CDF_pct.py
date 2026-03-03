@@ -174,26 +174,32 @@ plt.plot(X1[1:], F1, 'b')   # smooth plot
 # plt.axvline(x=q2, color='b', linestyle='--', label="50th Percentile (Median)")
 #plt.axvline(x=p95, color='r', linestyle='--', label="95th Percentile")
 
+# latest: 2/28/26: 0, 95, 99, 99.9, 99.95 (same percentiles for beta and gamma)
 if cell_scalar_name == "f_i":   # surface fraction; gamma
-    # Want: gamma=0%,95%,98%,99%,99.5% of the CDF(f)
     p1 = np.percentile(all_vals, 0)
     p2 = np.percentile(all_vals, 95)
-    p3 = np.percentile(all_vals, 98)
-    p4 = np.percentile(all_vals, 99)
-    p5 = np.percentile(all_vals, 99.5)
+    p3 = np.percentile(all_vals, 99)
+    p4 = np.percentile(all_vals, 99.9)
+    p5 = np.percentile(all_vals, 99.95)
     # x values for %s:  0.0 0.6826579410327743 0.7798234907576538 0.815967178524139 0.8690718408878354
 
 else:  # a_i  (surface area; beta)
-    # Want: beta=0%,50%,90%,95%,99% of the CDF(a)
     p1 = np.percentile(all_vals, 0)
-    p2 = np.percentile(all_vals, 50)
-    p3 = np.percentile(all_vals, 90)
-    p4 = np.percentile(all_vals, 95)
-    p5 = np.percentile(all_vals, 99)
+    p2 = np.percentile(all_vals, 95)
+    p3 = np.percentile(all_vals, 99)
+    p4 = np.percentile(all_vals, 99.9)
+    p5 = np.percentile(all_vals, 99.95)
     # x values for %s:  0.09078247087111796 0.7660009980054924 0.9470058462593367 0.9704404178018855 0.9865976851655481
 
 
 print(f"x values for %s: {p1:.5f}, {p2:.5f}, {p3:.5f}, {p4:.5f}, {p5:.5f}")
+# f_i  values for %s: 0.00000, 0.68266, 0.81597, 0.90819, 0.93674
+# a_i  values for %s: 0.09078, 0.97044, 0.98660, 0.99559, 0.99843
+# --> a_i  values for %s: 0.0, 0.97044, 0.98660, 0.99559, 0.99843
+
+# if cell_scalar_name == "f_i":   # surface fraction; gamma
+    # print(f"x values for additional %s: {p6:.5f}, {p7:.5f}, {p8:.5f}")
+    # print(f"x values for additional %s: {p6:.5f}, {p7:.5f}")
 
     # Want: gamma=0%,95%,98%,99%,99.5% of the CDF(f)
     # Want: beta=0%,50%,90%,95%,99% of the CDF(a)
@@ -202,6 +208,11 @@ plt.axvline(x=p2, color='r', linestyle='--')
 plt.axvline(x=p3, color='r', linestyle='--')
 plt.axvline(x=p4, color='r', linestyle='--')
 plt.axvline(x=p5, color='r', linestyle='--')
+
+# if cell_scalar_name == "f_i":   # surface fraction; gamma
+#     plt.axvline(x=p6, color='r', linestyle='--')
+#     plt.axvline(x=p7, color='r', linestyle='--')
+    # plt.axvline(x=p8, color='r', linestyle='--')
 
 #plt.title("PhysiCell: CDF of area fractions ($\\beta = \\gamma = 0$)")
 # plt.ylabel("cumulative counts (1000 cells x 100 runs)")
@@ -218,7 +229,7 @@ plt.ylabel("CDF (100 runs of 1000 cells)")
 plt.xlim(right=1.0)
 # plt.xlim(left=0.0, right=1.0)
 # plt.xlim(left=0.0)
-plt.ylim(bottom=0.0, top=1.0)
+plt.ylim(bottom=0.0, top=1.05)
 # plt.ylim(top=1.0)
 # plt.ylim(bottom=0.84, top=1.0)  # for f_i
 plt.grid(True)
@@ -226,9 +237,13 @@ plt.grid(True)
 # plt.axis('equal')
 # fix_hist_step_vertical_line_at_end(ax)
 # title_str = f"PhysiCell: {cell_scalar_name}  (N={max_runs})"
-if cell_scalar_name == "f_i":
-    title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 95, 98, 99, 99.5"
-else:
-    title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 50, 90, 95, 99"
+
+# latest: 2/28/26: 0, 95, 99, 99.9, 99.95 (same percentiles for beta and gamma)
+title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 95, 99, 99.9 99.95"
+
+# if cell_scalar_name == "f_i":
+#     title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 95, 98, 99, 99.5 99.9 99.95"
+# else:
+#     title_str = f"PhysiCell: {cell_scalar_name} %s: 0, 50, 90, 95, 99"
 plt.title(title_str)
 plt.show()

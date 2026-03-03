@@ -142,6 +142,7 @@ class Simulation:
         self.time: int = 0
         # self.history: list[dict] = []
 
+    # involves the crucial assumptions related to "time"
     def step(self) -> int:
         """
         Advance the simulation by one time step.
@@ -173,61 +174,65 @@ class Simulation:
 
         # 2) Update each agent's velocity vector:  like Cell::add_potentials(Cell* other_agent)
         cell_cell_repulsion_strength = 10.0
-        for agent in self.agents:
-            agent_r = math.sqrt(agent.area/math.pi)
-            agent.vel_x = 0
-            agent.vel_y = 0
-            for agent2 in self.agents:
-                if agent.ID != agent2.ID:
-                    # displacement[i] = position[i] - (*other_agent).position[i]; 
-                    xdel = agent.x - agent2.x   # "displacement" vector in C++
-                    ydel = agent.y - agent2.y
-                    dist = math.sqrt(xdel*xdel + ydel*ydel)
-                    # distance = std::max(sqrt(distance), 0.00001); 
 
-	# //Repulsive
-	# double R = phenotype.geometry.radius+ (*other_agent).phenotype.geometry.radius; 
+        max_relax_steps = 5   
+        for relax_steps in range(max_relax_steps):   # isn't this violating our assumptions of time??
 
-                    agent2_r = math.sqrt(agent2.area/math.pi)
-                    if dist < 1.25 * (agent_r + agent2_r):
-                        R = agent_r + agent2_r
-                        if dist > R:
-                            temp_r = 0
-                        else:
-                            # print(f"update velocity of cell {agent.ID} due to nbr {agent.ID}")
-                            temp_r = -dist  # -d
-                            temp_r /= R # -d/R
-                            temp_r += 1.0 # 1-d/R
-                            temp_r *= temp_r # (1-d/R)^2 
-                            
-                            # add the relative pressure contribution 
-                            # state.simple_pressure += ( temp_r / simple_pressure_scale ); // New July 2017 
+            for agent in self.agents:
+                agent_r = math.sqrt(agent.area/math.pi)
+                agent.vel_x = 0
+                agent.vel_y = 0
+                for agent2 in self.agents:
+                    if agent.ID != agent2.ID:
+                        # displacement[i] = position[i] - (*other_agent).position[i]; 
+                        xdel = agent.x - agent2.x   # "displacement" vector in C++
+                        ydel = agent.y - agent2.y
+                        dist = math.sqrt(xdel*xdel + ydel*ydel)
+                        # distance = std::max(sqrt(distance), 0.00001); 
 
-                        # PhysiCell C++ code
-                        # double effective_repulsion = sqrt( phenotype.mechanics.cell_cell_repulsion_strength * other_agent->phenotype.mechanics.cell_cell_repulsion_strength ); 
-                        # effective_repulsion = math.sqrt(cell_cell_repulsion_strength * cell_cell_repulsion_strength) 
-                        # effective_repulsion = cell_cell_repulsion_strength  
-                        # temp_r *= effective_repulsion 
-                        temp_r *= cell_cell_repulsion_strength 
+        # //Repulsive
+        # double R = phenotype.geometry.radius+ (*other_agent).phenotype.geometry.radius; 
 
-                        # skip over adhesion, there is none
+                        agent2_r = math.sqrt(agent2.area/math.pi)
+                        if dist < 1.25 * (agent_r + agent2_r):
+                            R = agent_r + agent2_r
+                            if dist > R:
+                                temp_r = 0
+                            else:
+                                # print(f"update velocity of cell {agent.ID} due to nbr {agent.ID}")
+                                temp_r = -dist  # -d
+                                temp_r /= R # -d/R
+                                temp_r += 1.0 # 1-d/R
+                                temp_r *= temp_r # (1-d/R)^2 
+                                
+                                # add the relative pressure contribution 
+                                # state.simple_pressure += ( temp_r / simple_pressure_scale ); // New July 2017 
 
-                        # if( fabs(temp_r) < 1e-16 )
-                        # { return; }
-                        temp_r /= dist
+                            # PhysiCell C++ code
+                            # double effective_repulsion = sqrt( phenotype.mechanics.cell_cell_repulsion_strength * other_agent->phenotype.mechanics.cell_cell_repulsion_strength ); 
+                            # effective_repulsion = math.sqrt(cell_cell_repulsion_strength * cell_cell_repulsion_strength) 
+                            # effective_repulsion = cell_cell_repulsion_strength  
+                            # temp_r *= effective_repulsion 
+                            temp_r *= cell_cell_repulsion_strength 
 
-                        # velocity[i] += displacement[i] * temp_r; 
-	                    # axpy( &velocity , temp_r , displacement ); 
-                        agent.vel_x += xdel * temp_r
-                        agent.vel_y += ydel * temp_r
-                        # if self.time >= 90 and self.time <=120:  #rwh
-                            # print(f"--ID={agent.ID}, step={self.time}: update velocity for {agent.agent_id}: vel_x={agent.vel_x}, _y={agent.vel_y}")
-                            # print(f"--step={self.time}: update velocity for {agent.ID}: vel_x={agent.vel_x}, _y={agent.vel_y}")
+                            # skip over adhesion, there is none
 
-        # 3) Update each agent's position with its velocity
-        for agent in self.agents:
-            agent.x += agent.vel_x
-            agent.y += agent.vel_y
+                            # if( fabs(temp_r) < 1e-16 )
+                            # { return; }
+                            temp_r /= dist
+
+                            # velocity[i] += displacement[i] * temp_r; 
+                            # axpy( &velocity , temp_r , displacement ); 
+                            agent.vel_x += xdel * temp_r
+                            agent.vel_y += ydel * temp_r
+                            # if self.time >= 90 and self.time <=120:  #rwh
+                                # print(f"--ID={agent.ID}, step={self.time}: update velocity for {agent.agent_id}: vel_x={agent.vel_x}, _y={agent.vel_y}")
+                                # print(f"--step={self.time}: update velocity for {agent.ID}: vel_x={agent.vel_x}, _y={agent.vel_y}")
+
+            # 3) Update each agent's position with its velocity
+            for agent in self.agents:
+                agent.x += agent.vel_x
+                agent.y += agent.vel_y
 
         self.time += 1
 

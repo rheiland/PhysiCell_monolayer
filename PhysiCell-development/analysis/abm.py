@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 print("# args=",len(sys.argv))
-if len(sys.argv) < 5:
-    print("Usage: <repulsion(10)> <max cells> <win size> <split type(0-2)>\n")
+if len(sys.argv) < 6:
+    print("Usage: <repulsion(10)> <max cells> <win size> <split type(0-2)> <num_relax_steps>\n")
     exit()
 idx=1
 repulsion = float(sys.argv[idx])
@@ -31,6 +31,8 @@ idx+=1
 win_size = float(sys.argv[idx])
 idx+=1
 daughter_split = int(sys.argv[idx])
+idx+=1
+num_relax_steps = int(sys.argv[idx])
 
 # MAX_AGENTS = 400          # hard cap; determines pre-allocated array size
 # MAX_AGENTS = 500          # hard cap; determines pre-allocated array size
@@ -297,12 +299,14 @@ class Simulation:
         self._np.load_from_agents(self.agents)
 
         # --- 3) Vectorised velocity update ---
-        self._update_velocities_np()
+        # num_relax_steps = 2
+        for relax_steps in range(num_relax_steps):   # isn't this violating our assumptions of time??
+            self._update_velocities_np()
 
         # --- 4) Vectorised position update ---
-        n = self._np.n
-        self._np.x[:n] += self._np.vx[:n]
-        self._np.y[:n] += self._np.vy[:n]
+            n = self._np.n
+            self._np.x[:n] += self._np.vx[:n]
+            self._np.y[:n] += self._np.vy[:n]
 
         # --- 5) Write positions / velocities back to Agent objects ---
         self._np.write_back_to_agents(self.agents)
@@ -448,7 +452,8 @@ class Simulation:
                 ))
 
             # title_text.set_text(f"t = {idx}   |   agents = {len(agent_list)}")
-            title_text.set_text(f"t = {idx} | agents = {len(agent_list)} | split={daughter_split}")
+            # title_text.set_text(f"t = {idx} | agents = {len(agent_list)} | split={daughter_split}")
+            title_text.set_text(f"t={idx} | agents={len(agent_list)} | split={daughter_split} | #relax={num_relax_steps}")
             pop_line.set_data(all_times[:idx + 1], all_pops[:idx + 1])
             time_marker.set_xdata([idx, idx])
 

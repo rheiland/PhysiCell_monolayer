@@ -8,6 +8,7 @@ NumPy-accelerated version with fixed-size arrays (MAX_AGENTS cap).
 The O(N²) velocity kernel is now fully vectorised.
 """
 
+import sys
 import math
 import random
 import numpy as np
@@ -18,11 +19,31 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+print("# args=",len(sys.argv))
+if len(sys.argv) < 5:
+    print("Usage: <repulsion(10)> <max cells> <win size> <split type(0-2)>\n")
+    exit()
+idx=1
+repulsion = float(sys.argv[idx])
+idx+=1
+MAX_AGENTS = int(sys.argv[idx])
+idx+=1
+win_size = float(sys.argv[idx])
+idx+=1
+daughter_split = int(sys.argv[idx])
+
 # MAX_AGENTS = 400          # hard cap; determines pre-allocated array size
-MAX_AGENTS = 500          # hard cap; determines pre-allocated array size
+# MAX_AGENTS = 500          # hard cap; determines pre-allocated array size
 # MAX_AGENTS = 100          # hard cap; determines pre-allocated array size
+# MAX_AGENTS = 500          # hard cap; determines pre-allocated array size
+# MAX_AGENTS = 1001          # hard cap; determines pre-allocated array size
+# MAX_AGENTS = 100          # hard cap; determines pre-allocated array size
+
 max_ID = 0
 
+# MAX_AGENTS = int(sys.argv[1])
+# win_size = float(sys.argv[2])
+# daughter_split = int(sys.argv[3])
 
 # ---------------------------------------------------------------------------
 # Agent dataclass (kept for visualisation / history compatibility)
@@ -62,9 +83,16 @@ class Agent:
         # yv = math.sin(theta) * 2 * daughter_radius
 
         # this results in non-biased monolayer growth about the origin
-        theta = random.random() * 2 * math.pi
-        xv = math.cos(theta) * daughter_radius
-        yv = math.sin(theta) * daughter_radius
+        theta = random.random() * 6.283185307179   # 2 * math.pi
+        # xv = math.cos(theta) * daughter_radius
+        # yv = math.sin(theta) * daughter_radius
+
+        # overlap_const = 0.3
+        # overlap_const = 1.0
+        # xvec = math.cos(theta) * daughter_radius * overlap_const
+        # yvec = math.sin(theta) * daughter_radius * overlap_const
+        xvec = math.cos(theta) * daughter_radius * 2
+        yvec = math.sin(theta) * daughter_radius * 2
 
         def _norm_rand():
             v = random.normalvariate(2.0, 0.4)
@@ -75,12 +103,32 @@ class Agent:
         nr1 = _norm_rand()
         nr2 = _norm_rand()
 
-        d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0,
-                   area=daughter_area, growth_rate=self.growth_rate,
-                   division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
-        d2 = Agent(x=self.x + xv, y=self.y + yv, vel_x=0, vel_y=0,
-                   area=daughter_area, growth_rate=self.growth_rate,
-                   division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        if daughter_split == 0:     # PhysiCell: daughter = parent x,y
+            d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x + xvec, y=self.y + yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        elif daughter_split == 1:   # equi-split
+            xvec /= 2
+            yvec /= 2
+            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        elif daughter_split == 2:   # equi-split w/ overlap
+            xvec /= 2.5
+            yvec /= 2.5
+            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+
         return d1, d2
 
 
@@ -281,7 +329,7 @@ class Simulation:
 
     def precompute(self, steps: int, max_agents: int = MAX_AGENTS) -> None:
         import copy
-        print(f"Pre-computing {steps} steps...", end=" ", flush=True)
+        print(f"Pre-computing {steps} steps, {max_agents} cells...", end=" ", flush=True)
         self._frames: list[list[Agent]] = [copy.deepcopy(self.agents)]
 
         for _ in range(steps):
@@ -352,7 +400,9 @@ class Simulation:
         ax_pop.set_xlim(0, n_frames - 1)
         ax_pop.set_ylim(0, max(all_pops) * 1.15 + 1)
 
-        win_size = 150
+        # win_size = 20
+        # win_size = 150
+        # win_size = 50
         ax_space.set_xlim(-win_size, win_size)
         ax_space.set_ylim(-win_size, win_size)
         title_text = ax_space.set_title("", color="white", fontsize=10)
@@ -391,11 +441,14 @@ class Simulation:
                 ax_space.add_patch(patches.Circle(
                     (agent.x, agent.y),
                     radius=math.sqrt(agent.area / math.pi),
-                    facecolor='white', alpha=0.9,
-                    linewidth=1.0, edgecolor="darkgray",
+                    # facecolor='white', alpha=0.9,
+                    facecolor='black', alpha=1.0,
+                    # linewidth=1.0, edgecolor="darkgray",
+                    linewidth=0.5, edgecolor="white",
                 ))
 
-            title_text.set_text(f"t = {idx}   |   agents = {len(agent_list)}")
+            # title_text.set_text(f"t = {idx}   |   agents = {len(agent_list)}")
+            title_text.set_text(f"t = {idx} | agents = {len(agent_list)} | split={daughter_split}")
             pop_line.set_data(all_times[:idx + 1], all_pops[:idx + 1])
             time_marker.set_xdata([idx, idx])
 
@@ -448,7 +501,7 @@ class Simulation:
 # Example usage
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    random.seed(0)
+    random.seed(42)
 
     sim = Simulation(
         n_seed=1,
@@ -458,7 +511,8 @@ if __name__ == "__main__":
         initial_area=78.54,
     )
 
-    sim.precompute(steps=50000, max_agents=MAX_AGENTS)
+    # sim.precompute(steps=50000, max_agents=MAX_AGENTS)
+    sim.precompute(steps=500000, max_agents=MAX_AGENTS)
 
     sim.interactive_viewer(
         title="Growing Monolayer",

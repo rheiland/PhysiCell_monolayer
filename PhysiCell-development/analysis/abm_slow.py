@@ -20,7 +20,7 @@ cells grow and divide. (The faster version is abm.py, uses numpy, and is a bit m
 the details.)
 
 """
-
+import sys
 import math
 import random
 # import uuid
@@ -31,6 +31,18 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 # import mpld3
 
+print("# args=",len(sys.argv))
+if len(sys.argv) < 5:
+    print("Usage: <repulsion(10)> <max cells> <win size> <split type(0-2)>\n")
+    exit()
+idx=1
+repulsion = float(sys.argv[idx])
+idx+=1
+MAX_AGENTS = int(sys.argv[idx])
+idx+=1
+win_size = float(sys.argv[idx])
+idx+=1
+daughter_split = int(sys.argv[idx])
 
 max_ID = 0
 
@@ -86,9 +98,9 @@ class Agent:
 
         max_ID += 1
 
-        theta = random.random() * 2 * math.pi
-        xv = math.cos(theta) * daughter_radius
-        yv = math.sin(theta) * daughter_radius
+        theta = random.random() * 6.283185307179    # 2 * math.pi
+        xvec = math.cos(theta) * daughter_radius * 2
+        yvec = math.sin(theta) * daughter_radius * 2
 
         nr1 = random.normalvariate(mu=2.0, sigma=0.4)   # mean=2, stddev=0.4
         while nr1 < 0:
@@ -98,12 +110,31 @@ class Agent:
         while nr2 < 0:
              nr2 = random.normalvariate(mu=2.0, sigma=0.4)   # mean=2, stddev=0.4
 
-        d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0,
-                   area=daughter_area, growth_rate=self.growth_rate,
-                   division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
-        d2 = Agent(x=self.x + xv, y=self.y + yv, vel_x=0, vel_y=0,
-                   area=daughter_area, growth_rate=self.growth_rate,
-                   division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        if daughter_split == 0:     # PhysiCell: daughter = parent x,y
+            d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x + xvec, y=self.y + yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        elif daughter_split == 1:   # equi-split
+            xvec /= 2
+            yvec /= 2
+            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
+        elif daughter_split == 2:   # equi-split w/ overlap
+            xvec /= 2.5
+            yvec /= 2.5
+            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+                    area=daughter_area, growth_rate=self.growth_rate,
+                    division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
 
         return d1, d2
 
@@ -173,9 +204,11 @@ class Simulation:
 	    # }
 
         # 2) Update each agent's velocity vector:  like Cell::add_potentials(Cell* other_agent)
-        cell_cell_repulsion_strength = 10.0
+        # cell_cell_repulsion_strength = 10.0
+        cell_cell_repulsion_strength = repulsion
+        # cell_cell_repulsion_strength = 0.0
 
-        max_relax_steps = 5   
+        max_relax_steps = 1
         for relax_steps in range(max_relax_steps):   # isn't this violating our assumptions of time??
 
             for agent in self.agents:
@@ -336,7 +369,8 @@ class Simulation:
         # ax_space.set_xlim(min(all_x) - pad, max(all_x) + pad)
         # ax_space.set_ylim(min(all_y) - pad, max(all_y) + pad)
 
-        win_size = 100  # rwh: hard-code for now
+        # win_size = 100  # rwh: hard-code for now
+        # win_size = 150  # rwh: hard-code for now
         ax_space.set_xlim(-win_size, win_size)
         ax_space.set_ylim(-win_size, win_size)
 
@@ -473,7 +507,7 @@ if __name__ == "__main__":
     )
 
     # 1. Pre-compute all frames (enables backward scrubbing)
-    sim.precompute(steps=50000, max_agents=100)  # rwh
+    sim.precompute(steps=50000, max_agents=MAX_AGENTS)  # rwh
 
     # 2. Open the interactive widget viewer
     sim.interactive_viewer(

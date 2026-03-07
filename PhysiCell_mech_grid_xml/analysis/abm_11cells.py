@@ -40,6 +40,8 @@ repulsion = float(sys.argv[idx])
 print("repulsion=",repulsion)
 idx+=1
 win_size = float(sys.argv[idx])
+idx+=1
+max_steps = int(sys.argv[idx])
 
 max_ID = 0
 
@@ -49,15 +51,18 @@ class Agent:
     An agent with a 2D position, area, and constant growth rate.
 
     Attributes:
-        x, y          : Position 
-        vel_x, vel_y  : Velocity 
-        area        : Current area of the agent.
+        x, y          : position 
+        vel_x, vel_y  : velocity 
+        prev_vel_x, prev_vel_y  : previous velocity 
+        area          : current area of the agent.
         ID            : unique integer identifier
     """
     x: float
     y: float
     vel_x: float
     vel_y: float
+    prev_vel_x: float
+    prev_vel_y: float
     area: float
     ID: int = 0
     time_step: int = 0
@@ -82,6 +87,8 @@ class Simulation:
                 y=0,
                 vel_x=0,   # velocity
                 vel_y=0,
+                prev_vel_x=0,   # previous velocity
+                prev_vel_y=0,
                 area=initial_area,
             )
             for _ in range(n_seed)
@@ -95,9 +102,40 @@ class Simulation:
             a.y             = 0.0
             a.vel_x         = 0.0
             a.vel_x         = 0.0
+            a.prev_vel_x    = 0.0
+            a.prev_vel_x    = 0.0
             a.area          = 78.54
             a.ID          = i
             print(i,a)
+
+    def update_position(self, dt) -> None:
+        # use Adams-Bashforth 
+        # if( constants_defined == false )
+        if True:
+            d1 = dt; 
+            d1 *= 1.5; 
+            d2 = dt; 
+            d2 *= -0.5; 
+            # constants_defined = true; 
+
+        for agent in self.agents:
+            # axpy( &position , d1 , velocity );    # position[i] += velocity[i] * d1
+            agent.x += agent.vel_x * d1
+            agent.y += agent.vel_y * d1
+
+            # axpy( &position , d2 , previous_velocity );  
+            agent.x += agent.prev_vel_x * d2
+            agent.y += agent.prev_vel_y * d2
+
+
+            # previous_velocity = velocity; 
+            agent.prev_vel_x = agent.vel_x
+            agent.prev_vel_y = agent.vel_y
+
+            # velocity[0]=0; velocity[1]=0; velocity[2]=0;
+            agent.vel_x = 0.0
+            agent.vel_y = 0.0
+
 
     # involves the crucial assumptions related to "time"
     def step(self) -> None:
@@ -120,14 +158,14 @@ class Simulation:
         # cell_cell_repulsion_strength = 0.0
 
         max_relax_steps = 1   # 10 is equivalent to using dt_mechanics = 0.1 ??
-        print("----------------")
+        # print("----------------")
         for relax_step in range(max_relax_steps):   # isn't this violating our assumptions of time??
-            print("---- relax_step ",relax_step)
+            # print("---- relax_step ",relax_step)
 
             for agent in self.agents:
                 agent_r = math.sqrt(agent.area/math.pi)
-                agent.vel_x = 0
-                agent.vel_y = 0
+                # agent.vel_x = 0
+                # agent.vel_y = 0
                 nbr_cell_IDs = []
                 if agent.ID == 0:    # left end
                     nbr_cell_IDs = [1]
@@ -138,14 +176,14 @@ class Simulation:
 
                 for agent2 in self.agents:
                     # print(agent.ID, agent2.ID)
-                    # if agent2.ID in nbr_cell_IDs:
-                    if True:
+                    if agent2.ID in nbr_cell_IDs:
+                    # if agent2.ID != agent.ID:
                         # displacement[i] = position[i] - (*other_agent).position[i]; 
-                        xdel = abs(agent.x - agent2.x)   # "displacement" vector in C++
+                        xdel = agent.x - agent2.x   # "displacement" vector in C++
                         # ydel = agent.y - agent2.y
                         # ydel = 0.0
                         # dist = math.sqrt(xdel*xdel + ydel*ydel)
-                        dist = xdel
+                        dist = math.sqrt(xdel*xdel)
                         # if agent.ID == 5:
                         #     print(f"ID 5 cell dist to {agent2.ID} is {dist}")
                         # distance = std::max(sqrt(distance), 0.00001); 
@@ -188,20 +226,24 @@ class Simulation:
                         # axpy( &velocity , temp_r , displacement );    # velocity[i] += displacement[i] * temp_r;
                         # velocity[i] += displacement[i] * temp_r; 
                         # axpy( &velocity , temp_r , displacement ); 
+
                         agent.vel_x += xdel * temp_r
+
                         # agent.vel_y += ydel * temp_r
                         agent.vel_y = 0
                             # if self.time >= 90 and self.time <=120:  #rwh
                                 # print(f"--ID={agent.ID}, step={self.time}: update velocity for {agent.agent_id}: vel_x={agent.vel_x}, _y={agent.vel_y}")
                                 # print(f"--step={self.time}: update velocity for {agent.ID}: vel_x={agent.vel_x}, _y={agent.vel_y}")
 
-                        agent.x += agent.vel_x * 0.1
+                        # agent.x += agent.vel_x * 0.1
+                        # print(f"----- agent ID={agent.ID}, vel_x={agent.vel_x} ")
 
 
             # 3) Update each agent's position with its velocity
-            for agent in self.agents:
-                agent.x += agent.vel_x * 0.1
-                # agent.y += agent.vel_y
+            dt_mechanics = 0.1
+            for idx_mech in range(10):
+                self.update_position(dt_mechanics)
+
 
         self.time += 1
 
@@ -441,7 +483,12 @@ if __name__ == "__main__":
     sim.load()
 
     # 1. Pre-compute all frames (enables backward scrubbing)
-    sim.precompute(steps=50)  # rwh
+    # sim.precompute(steps=50)  # rwh
+    sim.precompute(steps=max_steps)  # rwh
+
+    # print("ID for agent[0]= ",sim.agents[0].ID)
+    # print("ID for agent[10]= ",sim.agents[10].ID)
+    print("tissue width= ",sim.agents[10].x - sim.agents[0].x)
 
     # 2. Open the interactive widget viewer
     sim.interactive_viewer(

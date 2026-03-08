@@ -1,23 +1,20 @@
 """
-Growing monolayer model in Python 
+11 overlapping horizontal cells relaxation model in Python 
 =================================
 
-This initial version has no contact inhibition. The goal is to understand why PhysiCell seems
-to differ from Chaste, in terms of overcrowding/overlapping cells in the center of the monolayer
-when it gets too large.
+- only mechanical repulsion/relaxation (no mechanical adhesion, no cell cycle/growth, ...nothing else)
+- cell radius = 5
+- ICs have nbr cells overlap half-way, i.e., from furthest left cell, their centers are: -25,-20,-15,..., 25
+- print out time to reach 90% total relaxation (cells just touching), i.e., leftmost cell x= -45; rightmost x= 45
 
-* Cell size maintenance (parameter: target cell area A_0(t))
-* start with a single cell at the origin, with area = A_0(t)
-* Cell growth (parameters: linear growth rate α)
-* Cell division: cells divide when A(t) = X * A_0(0) 
-  (parameter:  X ∼ N(2, 0.4^2), truncated such that X > 0, 
-   redraw X otherwise). 
-   Observable for an isolated cell: cell cycle duration T = A0(0)/α)
+Usage: <repulsion(10)> <win size> <max_steps>
 
+Note there is *nothing* related to cell growth in this script. It's sole purpose is to obtain the cell cycle duration (and cycle rate to double in size (area)).
 
-This is the slower implementation of the model, to hopefully make it more obvious how
-cells grow and divide. (The faster version is abm.py, uses numpy, and is a bit more challenging to see
-the details.)
+e.g.,
+$ python abm_11cells.py 10 50 2000   # repulsion=10 --> growth rate = 0.0885
+$ python abm_11cells.py 20 50 2000   # repulsion=15 --> 0.1328
+$ python abm_11cells.py 20 50 2000   # repulsion=20 --> 0.1772
 
 """
 import sys
@@ -166,6 +163,8 @@ class Simulation:
                 agent_r = math.sqrt(agent.area/math.pi)
                 # agent.vel_x = 0
                 # agent.vel_y = 0
+
+                # for the case of 11 horizontal cells, we know exactly who the nbrs are of each cell
                 nbr_cell_IDs = []
                 if agent.ID == 0:    # left end
                     nbr_cell_IDs = [1]
@@ -177,17 +176,13 @@ class Simulation:
                 for agent2 in self.agents:
                     # print(agent.ID, agent2.ID)
                     if agent2.ID in nbr_cell_IDs:
-                    # if agent2.ID != agent.ID:
-                        # displacement[i] = position[i] - (*other_agent).position[i]; 
                         xdel = agent.x - agent2.x   # "displacement" vector in C++
                         # ydel = agent.y - agent2.y
                         # ydel = 0.0
                         # dist = math.sqrt(xdel*xdel + ydel*ydel)
                         dist = math.sqrt(xdel*xdel)
-                        # if agent.ID == 5:
-                        #     print(f"ID 5 cell dist to {agent2.ID} is {dist}")
                         # distance = std::max(sqrt(distance), 0.00001); 
-                        dist = max(dist, 0.00001)
+                        # dist = max(dist, 0.00001)
 
                         # //Repulsive
                         # double R = phenotype.geometry.radius+ (*other_agent).phenotype.geometry.radius; 
@@ -197,10 +192,6 @@ class Simulation:
                         # RMAD = 1.0   # Relative max adhesion distance
                         # # if dist < RMAD * (agent_r + agent2_r):    # RMAD = 1.25 leads to weird results
                         R = agent_r + agent2_r
-                        #     if dist > R:
-                        #         temp_r = 0
-                        #     else:
-                                # print(f"update velocity of cell {agent.ID} due to nbr {agent.ID}")
                         temp_r = -dist  # -d
                         temp_r /= R # -d/R
                         temp_r += 1.0 # 1-d/R
@@ -231,21 +222,23 @@ class Simulation:
 
                         # agent.vel_y += ydel * temp_r
                         agent.vel_y = 0
-                            # if self.time >= 90 and self.time <=120:  #rwh
-                                # print(f"--ID={agent.ID}, step={self.time}: update velocity for {agent.agent_id}: vel_x={agent.vel_x}, _y={agent.vel_y}")
-                                # print(f"--step={self.time}: update velocity for {agent.ID}: vel_x={agent.vel_x}, _y={agent.vel_y}")
-
-                        # agent.x += agent.vel_x * 0.1
-                        # print(f"----- agent ID={agent.ID}, vel_x={agent.vel_x} ")
 
 
             # 3) Update each agent's position with its velocity
             dt_mechanics = 0.1
-            for idx_mech in range(10):
+            # dt_mechanics = 1.0  # results in bizarre position updates
+            for idx_mech in range(1):  # 10 ?
                 self.update_position(dt_mechanics)
 
 
-        self.time += 1
+        # print("type(self.agents))= ",type(self.agents))
+        # print("dir(self.agents[0]))= ",dir(self.agents[0]))
+        # tissue_width= self.agents[10].x - self.agents[0].x 
+        # if tissue_width >= 90.:
+        #     print(f"tissue width= {tissue_width} at time (#steps)={self.time}")
+            # exit()
+
+        self.time += 1   # confusing, just "step #"
 
 
     def run(self, steps: int) -> None:
@@ -274,34 +267,43 @@ class Simulation:
         # Frame 0 = initial state (before any stepping)
         self._frames: list[list[Agent]] = [copy.deepcopy(self.agents)]
 
-        file_out = f'py_cells11_init.csv'
-        print("--> ",file_out)
-        with open(file_out, "w", newline="") as file:
-            writer = csv.writer(file)
+        # file_out = f'py_cells11_init.csv'
+        # print("--> ",file_out)
+        # with open(file_out, "w", newline="") as file:
+        #     writer = csv.writer(file)
 
-            writer.writerow(['x_pos','y_pos','radius_i','ID'])
-            for agent in self.agents:
-                # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
-                radius = math.sqrt(agent.area / math.pi)
-                writer.writerow([agent.x, agent.y, radius, agent.ID])
+        #     writer.writerow(['x_pos','y_pos','radius_i','ID'])
+        #     for agent in self.agents:
+        #         # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
+        #         radius = math.sqrt(agent.area / math.pi)
+        #         writer.writerow([agent.x, agent.y, radius, agent.ID])
 
         for _ in range(steps):
             self.step()
             self._frames.append(copy.deepcopy(self.agents))
 
+            tissue_width_90pct = self.agents[10].x - self.agents[0].x 
+            if tissue_width_90pct >= 90.:
+                print(f"\n\ntissue_width_90pct= {tissue_width_90pct} at time= {self.time}")
+                print(f"   --> cell cycle duration")
+                cell_cycle_rate = 1.0/self.time
+                print(f"   --> cell cycle rate (1/duration)= {cell_cycle_rate}")
+                print(f"   --> growth rate of cell (circular area): (2*A - A)*cycle rate= 78.5*{cell_cycle_rate}= {78.5*cell_cycle_rate}")
+                break
+
         print(f"done. {len(self._frames)} frames stored.")
 
         # save final results in .csv for post-processing
-        file_out = f'py_cells11.csv'
-        print("--> ",file_out)
-        with open(file_out, "w", newline="") as file:
-            writer = csv.writer(file)
+        # file_out = f'py_cells11.csv'
+        # print("--> ",file_out)
+        # with open(file_out, "w", newline="") as file:
+        #     writer = csv.writer(file)
 
-            writer.writerow(['x_pos','y_pos','radius_i','ID'])
-            for agent in self.agents:
-                # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
-                radius = math.sqrt(agent.area / math.pi)
-                writer.writerow([agent.x, agent.y, radius, agent.ID])
+        #     writer.writerow(['x_pos','y_pos','radius_i','ID'])
+        #     for agent in self.agents:
+        #         # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
+        #         radius = math.sqrt(agent.area / math.pi)
+        #         writer.writerow([agent.x, agent.y, radius, agent.ID])
 
 
     def interactive_viewer(self, title: str = "Agent-Based Model", interval: int = 100) -> None:

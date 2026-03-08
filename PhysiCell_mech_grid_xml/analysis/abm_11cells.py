@@ -32,8 +32,8 @@ import matplotlib.patches as patches
 # import mpld3
 
 print("# args=",len(sys.argv))
-if len(sys.argv) < 3:
-    print("Usage: <repulsion(10)> <win size>\n")
+if len(sys.argv) < 4:
+    print("Usage: <repulsion(10)> <win size> <max_steps>\n")
     exit()
 idx=1
 repulsion = float(sys.argv[idx])

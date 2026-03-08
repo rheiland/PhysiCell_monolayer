@@ -6,6 +6,13 @@ This initial version has no contact inhibition. The goal is to understand why Ph
 to differ from Chaste, in terms of overcrowding/overlapping cells in the center of the monolayer
 when it gets too large.
 
+Usage: <repulsion(e.g., 10)> <max cells, e.g., 500> <win size> <split type(0-2)>
+
+where "split type" is:
+  0 - like PhysiCell: keep 1 daughter at parent's position; other daughter randomly positioned so just touching
+  1 - random equi-split from parent; no overlap
+  2 - random equi-split from parent; slight overlap
+
 * Cell size maintenance (parameter: target cell area A_0(t))
 * start with a single cell at the origin, with area = A_0(t)
 * Cell growth (parameters: linear growth rate α)
@@ -44,6 +51,10 @@ win_size = float(sys.argv[idx])
 idx+=1
 daughter_split = int(sys.argv[idx])
 
+dt_mechanics = 0.1
+max_relax_steps = int(1/dt_mechanics)
+print(f"dt_mechanics= {dt_mechanics}, max_relax_steps= {max_relax_steps}")
+
 max_ID = 0
 
 @dataclass
@@ -54,6 +65,7 @@ class Agent:
     Attributes:
         x, y          : Position 
         vel_x, vel_y  : Velocity 
+        prev_vel_x, prev_vel_y  : previous velocity 
         area        : Current area of the agent.
         growth_rate   : Rate at which the area increases per time step (units/step).
         division_area : area at which the agent divides.
@@ -64,6 +76,8 @@ class Agent:
     y: float
     vel_x: float
     vel_y: float
+    prev_vel_x: float
+    prev_vel_y: float
     area: float = 78.5  # pi * 5^2
     growth_rate: float = 0.1778   # microns^2(?)/min  0.05
     division_area: float = 157.08        # division area=7.07
@@ -74,8 +88,8 @@ class Agent:
     def grow(self) -> None:
         """Increase area by growth_rate for one time step."""
             #   -- may need to scale by dt here (Dom)
-        self.area += self.growth_rate
-        self.time_step += 1
+        self.area += self.growth_rate * dt_mechanics  # do NOT scale the growth_rate itself!
+        # self.time_step += 1
         # if self.time_step % 5 == 0:
 
     def should_divide(self) -> bool:
@@ -112,28 +126,28 @@ class Agent:
              nr2 = random.normalvariate(mu=2.0, sigma=0.4)   # mean=2, stddev=0.4
 
         if daughter_split == 0:     # PhysiCell: daughter = parent x,y
-            d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0,
+            d1 = Agent(x=self.x,      y=self.y,      vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
-            d2 = Agent(x=self.x + xvec, y=self.y + yvec, vel_x=0, vel_y=0,
+            d2 = Agent(x=self.x + xvec, y=self.y + yvec, vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
         elif daughter_split == 1:   # equi-split
             xvec /= 2
             yvec /= 2
-            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+            d1 = Agent(x=self.x + xvec,  y=self.y + yvec,  vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
-            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
         elif daughter_split == 2:   # equi-split w/ overlap
             xvec /= 2.5
             yvec /= 2.5
-            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0,
+            d1 = Agent(x=self.x + xvec,      y=self.y + yvec,      vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr1, norm_rand=nr1, ID=self.ID)
-            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0,
+            d2 = Agent(x=self.x - xvec, y=self.y - yvec, vel_x=0, vel_y=0, prev_vel_x=0, prev_vel_y=0,
                     area=daughter_area, growth_rate=self.growth_rate,
                     division_area=78.54 * nr2, norm_rand=nr2, ID=max_ID)
 
@@ -164,6 +178,8 @@ class Simulation:
                 y=0,
                 vel_x=0,   # velocity
                 vel_y=0,
+                prev_vel_x=0,   # previous velocity
+                prev_vel_y=0,
                 area=initial_area,
                 growth_rate=growth_rate,
                 division_area=division_area,
@@ -171,13 +187,42 @@ class Simulation:
             )
             for _ in range(n_seed)
         ]
-        self.time: int = 0
+        # self.time: int = 0
+        self.time: float = 0.
         # self.history: list[dict] = []
+
+    def update_position(self, dt) -> None:
+        # use Adams-Bashforth 
+        # if( constants_defined == false )
+        if True:
+            d1 = dt; 
+            d1 *= 1.5; 
+            d2 = dt; 
+            d2 *= -0.5; 
+            # constants_defined = true; 
+
+        for agent in self.agents:
+            # axpy( &position , d1 , velocity );    # position[i] += velocity[i] * d1
+            agent.x += agent.vel_x * d1
+            agent.y += agent.vel_y * d1
+
+            # axpy( &position , d2 , previous_velocity );  
+            agent.x += agent.prev_vel_x * d2
+            agent.y += agent.prev_vel_y * d2
+
+
+            # previous_velocity = velocity; 
+            agent.prev_vel_x = agent.vel_x
+            agent.prev_vel_y = agent.vel_y
+
+            # velocity[0]=0; velocity[1]=0; velocity[2]=0;
+            agent.vel_x = 0.0
+            agent.vel_y = 0.0
 
     # involves the crucial assumptions related to "time"
     def step(self) -> int:
         """
-        Advance the simulation by one time step.
+        Advance the simulation by one time step... or dt_mechanics time step?? (rwh)
 
         Returns:
             Number of division events that occurred this step.
@@ -187,7 +232,7 @@ class Simulation:
 
         # 1) Grow all agents
         for agent in self.agents:
-            agent.grow()      # <----------------------
+            agent.grow()      # <---------------------- rwh: now use dt_mechanics
             if agent.should_divide():
                 d1, d2 = agent.divide()
                 survivors.extend([d1, d2])
@@ -209,11 +254,17 @@ class Simulation:
         cell_cell_repulsion_strength = repulsion
         # cell_cell_repulsion_strength = 0.0
 
-        max_relax_steps = 1
-        for relax_steps in range(max_relax_steps):   # isn't this violating our assumptions of time??
+        # dt_mechanics = 0.05
+        # max_relax_steps = int(1/dt_mechanics)
+        for relax_steps in range(1):   # isn't this violating our assumptions of time??
 
             for agent in self.agents:
                 agent_r = math.sqrt(agent.area/math.pi)
+
+                # previous_velocity = velocity; 
+                agent.prev_vel_x = agent.vel_x
+                agent.prev_vel_y = agent.vel_y
+
                 agent.vel_x = 0
                 agent.vel_y = 0
                 for agent2 in self.agents:
@@ -265,11 +316,17 @@ class Simulation:
 
             # 3) Update each agent's position with its velocity
             #   -- may need to scale by dt here (Dom)
-            for agent in self.agents:
-                agent.x += agent.vel_x
-                agent.y += agent.vel_y
+            # for agent in self.agents:
+            #     agent.x += agent.vel_x
+            #     agent.y += agent.vel_y
+            # 3) Update each agent's position with its velocity
+            # dt_mechanics = 0.1
+            for idx_mech in range(1):
+                self.update_position(dt_mechanics)
 
-        self.time += 1
+
+        # self.time += 1
+        self.time += dt_mechanics
 
         return divisions
 
@@ -283,7 +340,7 @@ class Simulation:
         """
 
         for _ in range(steps):
-            self.step()
+            self.step()  # will now step by dt_mechanics
             if len(self.agents) >= max_agents:
                 print(f"  Stopped early at t={self.time}: {len(self.agents)} agents.")
                 break
@@ -313,16 +370,16 @@ class Simulation:
         print(f"done. {len(self._frames)} frames stored.")
 
         # save final results in .csv for post-processing, e.g., to compute f_i and a_i
-        file_out = f'py_monolayer_small.csv'
-        print("--> ",file_out)
-        with open(file_out, "w", newline="") as file:
-            writer = csv.writer(file)
+        # file_out = f'py_monolayer_small.csv'
+        # print("--> ",file_out)
+        # with open(file_out, "w", newline="") as file:
+        #     writer = csv.writer(file)
 
-            writer.writerow(['x_pos','y_pos','radius_i','norm_rand_i'])
-            for agent in self.agents:
-                # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
-                radius = math.sqrt(agent.area / math.pi)
-                writer.writerow([agent.x, agent.y, radius, agent.norm_rand])
+        #     writer.writerow(['x_pos','y_pos','radius_i','norm_rand_i'])
+        #     for agent in self.agents:
+        #         # writer.writerow([x_pos[jdx],y_pos[jdx],radius_i[jdx],f_i[jdx],a_i[jdx]])
+        #         radius = math.sqrt(agent.area / math.pi)
+        #         writer.writerow([agent.x, agent.y, radius, agent.norm_rand])
 
 
     def interactive_viewer(self, title: str = "Agent-Based Model", interval: int = 100) -> None:
@@ -425,8 +482,10 @@ class Simulation:
                     linewidth=1.0, edgecolor="white",
                 ))
 
+            # print("self.time=",self.time)   # 2519.7999...
             title_text.set_text(
-                f"t = {idx}   |   agents = {len(agent_list)}"  #   |   max gen = {max_gen}"
+                f"frame= {idx} | agents= {len(agent_list)} | dt_mech={dt_mechanics}"  #   |   max gen = {max_gen}"
+                # f"t = {idx}   |   agents = {len(agent_list)}"  #   |   max gen = {max_gen}"
             )
 
             # pop_line.set_data(all_times[:idx + 1], all_pops[:idx + 1])
@@ -513,6 +572,6 @@ if __name__ == "__main__":
 
     # 2. Open the interactive widget viewer
     sim.interactive_viewer(
-        title="Growing Monolayer",
+        title="Growing Monolayer (serial)",
         interval=1,   # rwh: ms between auto-play frames
     )

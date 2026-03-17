@@ -186,12 +186,13 @@ plt.show()
 #------------------------------------------------
 
 # framework_head = 'Artistoo'
-framework_head = 'CHASTE'
+# framework_head = 'CHASTE'
 # framework_head = 'PolyHoop'
 # framework_head = 'TST'
 # framework_head = 'Morpheus'
-# framework_head = 'PhysiCell'
-framework = '1000_Data/' +  framework_head +'_MonolayerGrowth_1000_Data/'
+framework_head = 'PhysiCell'
+# framework = '1000_Data/' +  framework_head +'_MonolayerGrowth_1000_Data/'
+framework = framework_head +'_MonolayerGrowth_1000_Data/'
 
 
 # import the first simulation data for plotting

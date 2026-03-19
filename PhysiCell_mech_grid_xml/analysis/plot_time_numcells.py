@@ -6,6 +6,7 @@
 __author__ = "Randy Heiland"
 
 import sys,pathlib
+import csv
 #import xml.etree.ElementTree as ET
 #import math
 # import scipy.io
@@ -44,6 +45,7 @@ out_dir = "./output_monolayer_live_cycle_stochastic"
 out_dir = "./output_monolayer_cytomsep"
 out_dir = "./output_monolayer_not_fixed_cycle"
 out_dir = "./output_monolayer"
+out_dir = "."
 
 #out_dir = "../PhysiCell/output_monolayer_pressure_set_behavior"
 t=[]
@@ -83,13 +85,27 @@ for idx in range(0,max_frame+1, hr_delta):
     # print("monolayer diam= ",diam)
 
     # t.append(current_time/1440.)  # to get days
-    t.append(current_time/88.7)  # recall the 88.7 mins (the 90% width of 11 cells) = 1 T unit 
+    # t.append(current_time/88.7)  # recall the 88.7 mins (the 90% width of 11 cells) = 1 T unit 
+    t.append(current_time)  # recall the 88.7 mins (the 90% width of 11 cells) = 1 T unit 
     tumor_numcells.append(num_cells)      # calibrate space units by dividing by cell radius
     # sub_intern.append(sintern)
     # sub_conc.append(sconc)
 
-ax.plot(t, tumor_numcells,'k-')
-ax.plot(t, tumor_numcells,'k.')
+print("max time= ",current_time)
+t_norm = [element / current_time for element in t]
+ax.plot(t_norm, tumor_numcells,'k-')
+ax.plot(t_norm, tumor_numcells,'k.')
+
+file_out = f'time_count.csv'
+print("--> ",file_out)
+with open(file_out, "w", newline="") as file:
+    writer = csv.writer(file)
+
+# Write each row: x,y,g,n  (where g=growing (0/1), n=# of nbrs)
+    writer.writerow(['time','cells'])
+    for jdx in range(len(t_norm)):
+        writer.writerow([t_norm[jdx],tumor_numcells[jdx]])
+
 
 t2 = []
 tumor_diam2 = []
@@ -125,14 +141,15 @@ if add_points_flag:
   ax.plot(t2, tumor_diam2,'ko')
   ax.plot(drasdo_time, drasdo_diam,'ro')
 
-ax.set_xlim(0, 110)
+# ax.set_xlim(0, 110)
 # ax.set_ylim(0, 190)
 
 # ax.set(xlabel='t (day)', ylabel='diameter (micron)',title="monolayer growth")
 # ax.set(xlabel='T (unit)', ylabel='diameter (micron)',title="monolayer growth (PhysiCell)")
 # ax.set(xlabel='calibrated time units (T)', ylabel='diameter in calib space units (S)',title="monolayer growth (PhysiCell)")
 # ax.set(xlabel='time (T)', ylabel='# cells',title="monolayer growth (PhysiCell: stochastic cycle)")
-ax.set(xlabel='time (T)', ylabel='# cells',title="monolayer growth (PhysiCell: fixed cycle)")
+# ax.set(xlabel='time (T)', ylabel='# cells',title="monolayer growth: PhysiCell")
+ax.set(xlabel='normalized T', ylabel='# cells',title="monolayer growth: PhysiCell")
 # ax.grid()
 # fig.savefig("test.png")
 plt.show()

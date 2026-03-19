@@ -33,7 +33,7 @@ if sys.platform == 'win32':
 # xml_file_out = 'gamma_beta_sims_custom_volume.xml'
 # xml_file_in = 'monolayer_gamma_beta_cell_area.xml'
 # xml_file_in = 'monolayer_10K_5x_slower.xml'
-xml_file_in = 'monolayer_linear_growth_5x5'
+xml_file_in = 'monolayer_linear_growth_5x5.xml'
 
 xml_file_out = 'gamma_beta_sims_cell_area.xml'
 copyfile(xml_file_in, xml_file_out)

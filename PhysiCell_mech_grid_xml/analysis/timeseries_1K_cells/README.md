@@ -11,5 +11,6 @@ Prefered Area used: 78.54 (radius 5: pi * radius^2)
 Growth rate used: 1 / (88.3 * 5) = 1/441.5 ~= 0.002265
 
 In PhysiCell we compute:
-    pCell->custom_data["cell_area"] =  pCell->custom_data["cell_area_0"] * (1.0 + pCell->custom_data["time_in_cycle"] / cycle_duration ); 
+    pCell->custom_data["cell_area"] =  pCell->custom_data["cell_area_0"] *
+                                        (1.0 + pCell->custom_data["time_in_cycle"] / cycle_duration ); 
 ```

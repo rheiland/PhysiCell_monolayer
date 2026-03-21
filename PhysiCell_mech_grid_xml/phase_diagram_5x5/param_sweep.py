@@ -48,14 +48,16 @@ output_dirs = []
 # Beware trailing zeros!
 
 # NEW - 3/19/26
-#f_i: x values for %s: 0.00000, 0.71114, 0.82560, 0.90293, 0.91095
 #a_i: x values for %s: 0.49904, 0.97772, 0.98847, 0.99436, 0.99554
+#f_i: x values for %s: 0.00000, 0.71114, 0.82560, 0.90293, 0.91095
+
 # --> 3 decimal digits
-gamma_vals = [0.0, 0.711, 0.826, 0.903, 0.911]
 
 # do partial initially
-gamma_vals = [0.0, 0.711, 0.826]
 beta_vals  = [0.0, 0.978, 0.988, 0.994, 0.996]   # use 0.0 instead of 0.499 ??
+gamma_vals = [0.0, 0.711, 0.826, 0.903, 0.911]
+# gamma_vals = [0.0, 0.711, 0.826]
+gamma_vals = [ 0.903, 0.911]
 
 for beta in beta_vals:
 
@@ -68,6 +70,10 @@ for beta in beta_vals:
     # for gamma in [0.0, 0.68266, 0.77982, 0.81597, 0.86907]:
     # for gamma in [0.9081]:
     for gamma in gamma_vals:
+        if beta==0.0 and gamma==0.0:
+            continue
+        if beta==0.0 and gamma==0.711:
+            continue
     # for gamma in [0.00000]:
         # folder_name = "out_b" + str(beta) + "_g" + str(gamma)
         # folder_name = "out_new_b" + str(beta) + "_g" + str(gamma)

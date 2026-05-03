@@ -1,10 +1,10 @@
 # Monolayer Growth with PhysiCell
 
-This repository provides a PhysiCell model and simulation results for a growing (2D) monolayer. This is one "reference model" in the [OpenVT] (https://www.openvt.org/) project. This project has distinct, but related, sub-projects:
+This repository provides a PhysiCell model and simulation results for a growing (2D) monolayer. This is one "reference model" in the [OpenVT](https://www.openvt.org/) project. This project has distinct, but related, sub-projects:
 <ul>
-  <li>11 cells, simple relaxation</li>
+  <li>11 overlapping, horizontally aligned cells, simple relaxation</li>
   <li>21 cells: 11+10 simple relaxation</li>
-  <li>1000 cell monolayer, no contact inhibition</li>
+  <li>1000 cell monolayer (100 runs), no contact inhibition</li>
   <li>10000 cell monolayer, 5x5 phase diagram of gamma, beta thresholds for contact inhibition</li>
 </ul>
 

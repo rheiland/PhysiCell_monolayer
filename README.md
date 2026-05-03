@@ -1,4 +1,4 @@
-# Monolayer Growth with PhysiCell
+# Agent-based model of a growing monolayer using PhysiCell
 
 This repository provides a PhysiCell model and simulation results for a growing (2D) monolayer. This is one "reference model" in the [OpenVT](https://www.openvt.org/) project. This project has distinct, but related, sub-projects:
 <ul>
@@ -8,19 +8,46 @@ This repository provides a PhysiCell model and simulation results for a growing 
   <li>10000 cell monolayer, 5x5 phase diagram of gamma, beta thresholds for contact inhibition</li>
 </ul>
 
-## 11 and 21 cells, simple relaxation
+## Simple mechanical relaxation
+
+### 11 and 21 cells, simple relaxation
 
 In a simple model leading up to the monolayer model, we have 11 cells along the x-axis. Each cell overlaps its neighbor by a radius length (R=5) at t=0 and then the model undergoes its normal relaxation (repulsion only, there's no cell-cell adhesion).
 
-See https://github.com/rheiland/mechanics_relaxation
-
 The time to reach 90% relaxed width will represent a cell cycle duration (when cell division would occur). However, based on early results, we eventually chose to use 5x this duration time.
 
+```
+(base) M1P~/git/mechanics_relaxation$ make load PROJ=cells11_final
+(base) M1P~/git/mechanics_relaxation$ make 
+(base) M1P~/git/mechanics_relaxation$ project  
+or:
+(base) M1P~/git/mechanics_relaxation$ pcstudio  
+
+(base) M1P~/git/mechanics_relaxation$ python analysis/plot_11cells_crop.py 88
+(generates pc_plot_11cells.csv)
+```
+<img src="images/physicell_relax11.png" width=400/>
+
+```
+- assuming we have similar results from the Chaste ABM framework:
+(base) M1P~/git/mechanics_relaxation$ python analysis/plot_11cells_csv.py pc_plot_11cells.csv
+```
+<img src="images/physicell_vs_chaste.png" width=500/>
+
+<hr>
 We also added 5 additional cells to each end of the 11 cells, for a total of 21 cells, and compared the relaxation mechanics, of both the inner 11 cells and the outer 21, with other modeling frameworks.
+
+```
+(base) M1P~/git/mechanics_relaxation$ python analysis/plot_21cells_crop.py 1440
+(generates pc_plot_21cells_width.csv)
+```
+<img src="images/physicell_relax21.png" width=400/>
+
+<img src="images/mechanics_cells21_relax_2026-04-22.gif" width=400/>
 
 <hr>
 
-## 1000 cells, no contact inhibition
+## Replicates for 1000 cells with no contact inhibition
 
 Terminology:
 * gamma - fraction of a cell's surface that is free (not in contact with neighbor cells)
@@ -32,23 +59,22 @@ For this part of the project, we ran 100 replicates of a growing monolayer, with
 <img src="images/sample_1000cells.png" width="600" />
 (Thanks to Dr. Domenic Germano (@DGermano8) for the nice plotting scripts!)
 
-## 10000 cells, max contact inhibition
+## 10000 cells with contact inhibition
 
 <img src="images/zoom_10K_f_i_max_inhibition.png" width="500" />
 
 Zoomed ROI of the 10K cells monolayer, coloring by `f_i` (fraction of free cell surface), using gamma and beta thresholds = 1.0 (max for each). Note that daughter cells have stochastic growth since each acquires a doubling area size of `A = A_0 *  N(2, 0.4)` (normal random distribution).
 
-
-## 5x5 phase diagram for f_i, a_i values
+### 5x5 phase diagram for f_i, a_i values
 
 Once we have the CDF for both gamma and beta, we choose fixed percentiles to map back to actual values that will be used as thresholds in the 10K cell monolayer simulations.
 
 <img src="images/f_i_values_from_CDF.png" width="400" />  <img src="images/a_i_values_from_CDF.png" width="400" />
 
 
-## PhysiCell release
+## PhysiCell version
 
-This version came from the "mech_grid_xml" branch of PhysiCell 1.14.2, so we could easily modify and experiment with PhysiCell's mechanics voxel size. As it turned out, we did not end up using this feature. However, we did include some other PRs for post-1.14.2.
+The base version of PhysiCell used for this model was 1.14.2, but it also included some modifications in pull requests, plus exposing a private variable in one class. 
 
 ## Funding
 

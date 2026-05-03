@@ -2,10 +2,14 @@
 
 This repository provides a PhysiCell model and simulation results for a growing (2D) monolayer. This is one "reference model" in the [OpenVT](https://www.openvt.org/) project. This project has distinct, but related, sub-projects:
 <ul>
-  <li>11 overlapping, horizontally aligned cells, simple relaxation</li>
-  <li>21 cells: 11+10 simple relaxation</li>
-  <li>1000 cell monolayer (100 runs), no contact inhibition</li>
-  <li>10000 cell monolayer, 5x5 phase diagram of gamma, beta thresholds for contact inhibition</li>
+  <li>11 overlapping, horizontally aligned cells, undergoing mechanical relaxation</li>
+  <li>21 cells: 11+10 undergoing relaxation</li>
+  <li>a growing monolayer of 1000 cells (100 runs), with no contact inhibition on growth</li>
+  <li>a growing monolayer of 10000 cells, with contact inhibition on growth, based on two computed values</li>
+  <ul>
+    <li>gamma: percentage of a cell's free boundary</li>
+    <li>beta: percentage of a cell's free area</li>
+  </ul>
 </ul>
 
 ## Simple mechanical relaxation
@@ -17,20 +21,20 @@ In a simple model leading up to the monolayer model, we have 11 cells along the 
 The time to reach 90% relaxed width will represent a cell cycle duration (when cell division would occur). However, based on early results, we eventually chose to use 5x this duration time.
 
 ```
-(base) M1P~/git/mechanics_relaxation$ make load PROJ=cells11_final
-(base) M1P~/git/mechanics_relaxation$ make 
-(base) M1P~/git/mechanics_relaxation$ project  
+$ make load PROJ=cells11_final
+$ make 
+$ project  
 or:
-(base) M1P~/git/mechanics_relaxation$ pcstudio  
+$ pcstudio   # if you have an alias for PhysiCell Studio
 
-(base) M1P~/git/mechanics_relaxation$ python analysis/plot_11cells_crop.py 88
+$ python analysis/plot_11cells_crop.py 88
 (generates pc_plot_11cells.csv)
 ```
 <img src="images/physicell_relax11.png" width=400/>
 
 ```
 - assuming we have similar results from the Chaste ABM framework:
-(base) M1P~/git/mechanics_relaxation$ python analysis/plot_11cells_csv.py pc_plot_11cells.csv
+$ python analysis/plot_11cells_csv.py pc_plot_11cells.csv
 ```
 <img src="images/physicell_vs_chaste.png" width=500/>
 

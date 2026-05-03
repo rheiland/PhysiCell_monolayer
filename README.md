@@ -60,7 +60,7 @@ Terminology:
 For this part of the project, we ran 100 replicates of a growing monolayer, with no contact inhibition, up to 1000 cells. We then generate a probability density function and cumulative density function for both gamma and beta.
 
 <img src="images/pdf_cdf_gamma_beta.png" width="600" />
-<img src="images/sample_1000cells.png" width="600" />
+<img src="images/cells1000_radii_gamma_beta.png" width="600" />
 (Thanks to Dr. Domenic Germano (@DGermano8) for the nice plotting scripts!)
 
 ## 10000 cells with contact inhibition

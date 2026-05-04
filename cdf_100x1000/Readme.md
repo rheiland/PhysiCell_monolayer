@@ -43,21 +43,21 @@ python ../beta/plot_cell_scalars_4states.py -s beta_or_gamma --show_colorbar -o 
 To plot histograms and cumulative dist fns (CDFs), do so from the root dir:
 '''
 
-(base) M1P~/git/PhysiCell_monolayer/PhysiCell_monolayer$ 
-python beta/all_CDF.py 100 cdf_1000cells_final bg00_cells1000_ f_i
-python beta/all_CDF.py 100 cdf_1000cells_final bg00_cells1000_ a_i
+(base) M1P~/git/PhysiCell_monolayer$ 
+python beta/all_CDF.py 100 cdf_100x1000 bg00_cells1000_ f_i
+python beta/all_CDF.py 100 cdf_100x1000 bg00_cells1000_ a_i
 
-python beta/all_CDF.py 1 cdf_1000cells_final bg00_cells1000_ a_i
+python beta/all_CDF.py 1 cdf_100x1000  bg00_cells1000_ a_i
 
-python beta/all_CDF_percentiles.py 100 cdf_1000cells_final bg00_cells1000_ f_i
+python beta/all_CDF_percentiles.py 100 cdf_100x1000  bg00_cells1000_ f_i
 ---------
 
 (base) M1P~/git/PhysiCell_monolayer$ 
-python beta/chosen_CDF_pct.py 100 cdf_1000cells_rlf_1.02_rmad_1.25 bg00_cells1000_  f_i
+python beta/chosen_CDF_pct.py 100 cdf_100x1000  bg00_cells1000_  f_i
 -->
 x values for %s: 0.00000, 0.69286, 0.82016, 0.89502, 0.90556
 
-python beta/chosen_CDF_pct.py 100 cdf_1000cells_rlf_1.02_rmad_1.25 bg00_cells1000_  a_i
+python beta/chosen_CDF_pct.py 100 cdf_100x1000  bg00_cells1000_  a_i
 --> BUT change 1st to be =0.0
 x values for %s: 0.37688, 0.97410, 0.98709, 0.99371, 0.99531
 
@@ -70,7 +70,7 @@ python ../analysis/cdf_single.py
 <hr>
 <!----------------------------------------------->
 - prepare proper subdir and ALL .csv files for Dom's plotting script:
-(base) M1P~/git/PhysiCell_monolayer/PhysiCell_monolayer/cdf_1000cells_final$ 
+(base) M1P~/git/PhysiCell_monolayer/cdf_100x1000$ 
 
 <!----------------------------------------------->
 Generate the final time-series .zip:

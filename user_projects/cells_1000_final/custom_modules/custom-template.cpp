@@ -65,76 +65,77 @@
 ###############################################################################
 */
 
-#include <algorithm>    // for std::remove
-
 #include "./custom.h"
-
-double time_90pct;  // time at which the outer cells reach 90% max width
-double xpos_90pct;
-bool cells11_flag = true;
-
-double rest_length_factor = 1.0;
-
-double tmin=0;
-double tmax= 1;
 
 void create_cell_types( void )
 {
-    if (parameters.doubles.find_index("rest_length_factor") != -1)
+	// set the random seed 
+	if (parameters.ints.find_index("random_seed") != -1)
 	{
-        rest_length_factor = parameters.doubles("rest_length_factor");
+		SeedRandom(parameters.ints("random_seed"));
 	}
-    else
-    {
-        std::cout << "Error: rest_length_factor needs to be defined in user params\n" << std::endl;
-        std::exit(-1);
-    }
 	
-	//   Put any modifications to default cell definition here if you 
-	//   want to have "inherited" by other cell types. 
+	/* 
+	   Put any modifications to default cell definition here if you 
+	   want to have "inherited" by other cell types. 
 	   
-	//   This is a good place to set default functions. 
+	   This is a good place to set default functions. 
+	*/ 
 	
 	initialize_default_cell_definition(); 
 	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment ); 
 	
 	cell_defaults.functions.volume_update_function = standard_volume_update_function;
-	// cell_defaults.functions.update_velocity = standard_update_cell_velocity;
+	cell_defaults.functions.update_velocity = standard_update_cell_velocity;
 
 	cell_defaults.functions.update_migration_bias = NULL; 
 	cell_defaults.functions.update_phenotype = NULL; // update_cell_and_death_parameters_O2_based; 
 	cell_defaults.functions.custom_cell_rule = NULL; 
 	cell_defaults.functions.contact_function = NULL; 
-    cell_defaults.functions.cell_division_function = NULL; 
 	
 	cell_defaults.functions.add_cell_basement_membrane_interactions = NULL; 
 	cell_defaults.functions.calculate_distance_to_membrane = NULL; 
 	
-	//   This parses the cell definitions in the XML config file. 
+	/*
+	   This parses the cell definitions in the XML config file. 
+	*/
+	
 	initialize_cell_definitions_from_pugixml(); 
 
-	//   This builds the map of cell definitions and summarizes the setup. 
+	/*
+	   This builds the map of cell definitions and summarizes the setup. 
+	*/
+		
 	build_cell_definitions_maps(); 
 
-	//   This intializes cell signal and response dictionaries 
+	/*
+	   This intializes cell signal and response dictionaries 
+	*/
+
 	setup_signal_behavior_dictionaries(); 	
 
-    //   Cell rule definitions 
+	/*
+       Cell rule definitions 
+	*/
+
 	setup_cell_rules(); 
 
-	//   Put any modifications to individual cell definitions here. 
-	//   This is a good place to set custom functions. 
+	/* 
+	   Put any modifications to individual cell definitions here. 
+	   
+	   This is a good place to set custom functions. 
+	*/ 
 	
-	// cell_defaults.functions.update_phenotype = phenotype_function; 
-	cell_defaults.functions.custom_cell_rule = custom_cell_rule; 
-    cell_defaults.functions.update_velocity = custom_update_cell_velocity;
-	// cell_defaults.functions.update_velocity = standard_update_cell_velocity;
-
-    xpos_90pct = (0.9 * cell_defaults.phenotype.geometry.radius * 2 * 10.0) / 2.0;
-    std::cout << "-------- xpos_90pct= " << xpos_90pct << std::endl;
+	cell_defaults.functions.update_phenotype = phenotype_function; 
+	cell_defaults.functions.custom_cell_rule = custom_function; 
+	cell_defaults.functions.contact_function = contact_function; 
 	
-	//   This builds the map of cell definitions and summarizes the setup. 
+	/*
+	   This builds the map of cell definitions and summarizes the setup. 
+	*/
+		
 	display_cell_definitions( std::cout ); 
+	
 	return; 
 }
 
@@ -146,15 +147,14 @@ void setup_microenvironment( void )
 	// extra Dirichlet nodes here. 
 	
 	// initialize BioFVM 
+	
 	initialize_microenvironment(); 	
+	
 	return; 
 }
 
 void setup_tissue( void )
 {
-    // First, decide if we're doing the 11 or 21 cell relaxation model
-    cells11_flag = parameters.bools("cells11");
-
 	double Xmin = microenvironment.mesh.bounding_box[0]; 
 	double Ymin = microenvironment.mesh.bounding_box[1]; 
 	double Zmin = microenvironment.mesh.bounding_box[2]; 
@@ -173,7 +173,6 @@ void setup_tissue( void )
 	double Yrange = Ymax - Ymin; 
 	double Zrange = Zmax - Zmin; 
 	
-
 	// create some of each type of cell 
 	
 	Cell* pC;
@@ -208,110 +207,8 @@ std::vector<std::string> my_coloring_function( Cell* pCell )
 void phenotype_function( Cell* pCell, Phenotype& phenotype, double dt )
 { return; }
 
+void custom_function( Cell* pCell, Phenotype& phenotype , double dt )
+{ return; } 
 
-// do every mechanics dt
-void custom_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt )
-{
-    pCell->custom_data["cell_ID"] = pCell->ID;
-    static double effective_repulsion = phenotype.mechanics.cell_cell_repulsion_strength;  // e.g., 10
-
-    // ----------  Step 1) determine who are my nbrs  ------------
-	pCell->state.neighbors.clear();
-    for (const auto& nbr : pCell->nearby_interacting_cells())  // choice: nearby_cells or nearby_interacting_cells
-    {
-        if (pCell->ID == nbr->ID)  // let's NOT count me as a nbr of me (as is done in core)
-            continue; 
-
-        double rest_length = (pCell->phenotype.geometry.radius + nbr->phenotype.geometry.radius) * rest_length_factor;
-        double dx = nbr->position[0] - pCell->position[0];
-        double dy = nbr->position[1] - pCell->position[1];  // should be 0.0
-        double distance = std::sqrt(dx*dx + dy*dy);
-
-        if (distance <= rest_length)
-        {
-            pCell->state.neighbors.push_back(nbr);
-        }
-    }
-
-    pCell->custom_data["num_nbrs"] = 0;
-
-    // ----------  Step 2) compute my velocity using my (corrected) nbrs ------------
-    pCell->velocity = {0.0, 0.0, 0.0};
-    for (const auto& pNeighbor : pCell->state.neighbors)
-    {
-        // NOTE: we do NOT use rest_length_factor here (for mechanical relaxation models)
-        double rest_length = (pCell->phenotype.geometry.radius + pNeighbor->phenotype.geometry.radius);
-
-        // Vector from A (pCell) toward B (pNeighbor)
-        double dx = pNeighbor->position[0] - pCell->position[0];
-
-        double dy = pNeighbor->position[1] - pCell->position[1];  // should be 0.0
-        double dz = 0.; // pNeighbor->position[2] - pCell->position[2];
-        double distance = std::abs(dx);   // keep it simple
-
-        if( distance < 1e-12 ) continue;  // avoid division by zero
-
-        double overlap = distance - rest_length;  // negative when cells overlap
-
-        if( overlap >= 0.0 )
-        {
-            continue;
-        }
-        else
-        {
-            pCell->custom_data["num_nbrs"] += 1;   // now performed in custom_cell_rule[_slow], after update_pos
-
-            double temp = 1.0 - (distance / rest_length);   // normalized overlap fraction
-            double magnitude = effective_repulsion * temp * temp;
-            pCell->velocity[0] -= magnitude * dx / distance;     // negate for repulsion
-        }
-    }
-}
-
-// called every dt_mech; pC->functions.custom_cell_rule( pC,pC->phenotype,time_since_last_mechanics );
-void custom_cell_rule( Cell* pCell, Phenotype& phenotype , double dt )
-{ 
-    static bool reached_90 = false;
-    std::stringstream ss;
-
-    pCell->custom_data["cell_ID"] = pCell->ID;
-    pCell->custom_data["num_nbrs"] = pCell->state.neighbors.size();
-    pCell->custom_data["vel_mag"] = std::sqrt( pCell->previous_velocity[0]*pCell->previous_velocity[0] + pCell->previous_velocity[1]*pCell->previous_velocity[1] );
-
-
-    // if (pCell->ID == 10 && pCell->position[0] >= 90.0)  // 90%, 90pct
-    if (pCell->ID == 10)
-    {
-        if (pCell->position[0] >= xpos_90pct)  // for symmetric test (hard-coded for diam=10)
-        {
-            if (!reached_90)
-            {
-                std::cout <<"---- "<< __FUNCTION__ << ": cell radius = " << phenotype.geometry.radius << std::endl;
-                time_90pct = PhysiCell_globals.current_time;
-                std::cout <<"---- "<< __FUNCTION__ << ": Width reached 90% , t= " << time_90pct << std::endl;
-
-                std::ofstream outFile;
-                // sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index );
-                ss << PhysiCell_settings.folder.c_str()  << "/time_90pct.txt" ;
-                std::string out_file = ss.str();
-                std::cout <<"---- "<< __FUNCTION__ << ": time_pct out_file=" << out_file << std::endl;
-                outFile.open(out_file);   // read by  ../analysis/plot_11cells_sweep.py  for plotting results
-                outFile << time_90pct;
-                outFile.close();
-
-                reached_90 = true;
-                // std::exit();
-            }
-            else
-            {
-                // if (PhysiCell_globals.current_time / time_90pct > 10.0)
-                if (cells11_flag && PhysiCell_globals.current_time / time_90pct > 10.0)
-                {
-                    std::cout <<"---- "<< __FUNCTION__ << "  calibrated T > 10.  Exit simulation!" << std::endl;
-                    std::exit(-1);
-                }
-
-            }
-        }
-    }
-} 
+void contact_function( Cell* pMe, Phenotype& phenoMe , Cell* pOther, Phenotype& phenoOther , double dt )
+{ return; } 

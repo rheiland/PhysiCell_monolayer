@@ -1,10 +1,10 @@
 <PhysiCell_settings version="devel-version">
 
     <domain>
-        <x_min>-1500.0</x_min>
-        <x_max>1500.0</x_max>
-        <y_min>-1500.0</y_min>
-        <y_max>1500.0</y_max>
+        <x_min>-300.0</x_min>
+        <x_max>300.0</x_max>
+        <y_min>-300.0</y_min>
+        <y_max>300.0</y_max>
         <z_min>-10.0</z_min>
         <z_max>10.0</z_max>
         <dx>20.0</dx>
@@ -27,13 +27,13 @@
     </parallel>
 
     <save>
-        <folder>output_1Kcells_custom_vel_rel_dist</folder>
+        <folder>output_1Kcells</folder>
         <full_data>
-            <interval units="min">60</interval>
+            <interval units="min">30</interval>
             <enable>true</enable>
         </full_data>
         <SVG>
-            <interval units="min">60</interval>
+            <interval units="min">30</interval>
             <enable>false</enable>
             <plot_substrate enabled="false" limits="false">
                 <substrate>substrate</substrate>
@@ -139,7 +139,7 @@
                 <mechanics>
                     <cell_cell_adhesion_strength units="micron/min">0</cell_cell_adhesion_strength>
                     <cell_cell_repulsion_strength units="micron/min">10</cell_cell_repulsion_strength>
-                    <relative_maximum_adhesion_distance units="dimensionless">1.</relative_maximum_adhesion_distance>
+                    <relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
                     <cell_adhesion_affinities>
                         <cell_adhesion_affinity name="default">1.0</cell_adhesion_affinity>
                     </cell_adhesion_affinities>
@@ -250,6 +250,6 @@
         <cycle_duration type="double" units="" description="5*T (T=time to reach 90% width of 11-cell relaxation)">443.5</cycle_duration>
         <cell_area_0 type="double" units="" description="based on cell volume (and radius)">78.54</cell_area_0>
         <normal_random_flag type="bool" units="" description="are daughter cells doubling size drawn from normal dist">true</normal_random_flag>
-        <rest_length_factor type="double" units="" description="">1.02</rest_length_factor>
+        <rest_length_factor type="double" units="" description="">1.05</rest_length_factor>
     </user_parameters>
 </PhysiCell_settings>

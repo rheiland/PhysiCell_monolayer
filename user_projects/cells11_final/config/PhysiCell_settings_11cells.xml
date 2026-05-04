@@ -237,6 +237,6 @@
     <user_parameters>
         <number_of_cells type="int" units="none" description="initial number of cells (for each cell type)">0</number_of_cells>
         <cells11 type="bool" units="" description="">true</cells11>
-        <rest_length_factor type="double" units="" description="">1.02</rest_length_factor>
+        <rest_length_factor type="double" units="" description="">1.05</rest_length_factor>
     </user_parameters>
 </PhysiCell_settings>

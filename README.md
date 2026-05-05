@@ -75,6 +75,11 @@ Once we have the CDF for both gamma and beta, we choose fixed percentiles to map
 
 <img src="images/f_i_values_from_CDF.png" width="400" />  <img src="images/a_i_values_from_CDF.png" width="400" />
 
+These percentiles map into the following gamma and beta thresholds that will be used to compute the 5x5 phase diagram:
+```
+gamma_vals=  [0.0, 0.791, 0.893, 0.937, 0.975]
+beta_vals=  [0.0, 0.988, 0.995, 0.999, 1.0]
+```
 
 ## PhysiCell version
 

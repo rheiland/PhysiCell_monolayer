@@ -479,6 +479,9 @@ void custom_volume_function( Cell* pCell, Phenotype& phenotype, double dt )
 // }
 
 // Assign N(2,0.4^2) to each daughter cell. Exit the sim at 10K cells (or "max_cells")
+// Note: this function is called from the core "divide()" function, so each daughter
+//       cell is assumed to be a sphere and separated by center of mass. So if we now
+//       simply "convert" to a 2D circle, they would be 
 void custom_division_function( Cell* pCell1, Cell* pCell2 )
 { 
     static std::vector<std::string> (*cell_coloring_function)(Cell*) = my_coloring_function;
@@ -506,26 +509,26 @@ void custom_division_function( Cell* pCell1, Cell* pCell2 )
     pCell2->set_total_volume( volume );
     // std::cout <<       ":  pCell1 volume= " << volume <<  std::endl;
 
-    static bool custom_daughters_pos = true;   // todo: make a user param
-    if (custom_daughters_pos)
-    {
-        // Need to modify the center of the new daughter cell to match new areas/volumes
-        double x0 = pCell1->position[0];
-        double y0 = pCell1->position[1];
+    // static bool custom_daughters_pos = true;   // todo: make a user param
+    // if (custom_daughters_pos)
+    // {
+    //     // Need to modify the center of the new daughter cell to match new areas/volumes
+    //     double x0 = pCell1->position[0];
+    //     double y0 = pCell1->position[1];
 
-        double x1 = pCell2->position[0];
-        double y1 = pCell2->position[1];
+    //     double x1 = pCell2->position[0];
+    //     double y1 = pCell2->position[1];
 
-        double xnew = x1 - x0;
-        double ynew = y1 - y0;
-        std::vector<double> vec = {xnew,ynew};
-        normalize(&vec);
+    //     double xnew = x1 - x0;
+    //     double ynew = y1 - y0;
+    //     std::vector<double> vec = {xnew,ynew};
+    //     normalize(&vec);
 
-        const double overlap_factor = 1.7;   // somewhat random, but seems about right
-        xnew = x0 + overlap_factor*radius * vec[0];
-        ynew = y0 + overlap_factor*radius * vec[1];
-        pCell2->assign_position(xnew,ynew,0.0);
-    }
+    //     const double overlap_factor = 1.7;   // somewhat random, but seems about right
+    //     xnew = x0 + overlap_factor*radius * vec[0];
+    //     ynew = y0 + overlap_factor*radius * vec[1];
+    //     pCell2->assign_position(xnew,ynew,0.0);
+    // }
 
     // Note: This is crucial! Otherwise, "division_at_phase_exit" is true when a cell divides.
     pCell1->phenotype.cycle.pCycle_Model->phases[0].division_at_phase_exit = false;
@@ -556,17 +559,19 @@ void custom_division_function( Cell* pCell1, Cell* pCell2 )
     {
         // set each daughter cell's "X" value to determine cell division: A(t) = X * A_0(0)
         double draw = NormalRandom(draw_mean, draw_stddev);  //     // where: NormalRandom(mean, std_dev)
-        while (draw < 0.0)
-        {
-            draw = NormalRandom(draw_mean, draw_stddev); 
-        }
+
+        // We eventually decided this was not needed (rf. Roman's gmail 5/5/26)
+        // while (draw < 0.0)
+        // {
+        //     draw = NormalRandom(draw_mean, draw_stddev); 
+        // }
         pCell1->custom_data["norm_rand"] = draw;
 
         draw = NormalRandom(draw_mean, draw_stddev);  //     // where: NormalRandom(mean, std_dev)
-        while (draw < 0.0)
-        {
-            draw = NormalRandom(draw_mean, draw_stddev); 
-        }
+        // while (draw < 0.0)
+        // {
+        //     draw = NormalRandom(draw_mean, draw_stddev); 
+        // }
         pCell2->custom_data["norm_rand"] = draw;
     }
     else

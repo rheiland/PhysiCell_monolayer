@@ -16,7 +16,7 @@ This repository provides a PhysiCell model and simulation results for a growing 
 
 ### 11 and 21 cells, simple relaxation
 
-In a simple model leading up to the monolayer model, we have 11 cells along the x-axis. Each cell overlaps its neighbor by a radius length (R=5) at t=0 and then the model undergoes its normal relaxation (repulsion only, there's no cell-cell adhesion).
+In a simple model leading up to the monolayer model, we have 11 cells along the x-axis. Each cell overlaps its neighbor by a radius length (R=5) at t=0 and then the model undergoes its normal tion (repulsion only, there's no cell-cell adhesion).
 
 The time to reach 90% relaxed width will represent a cell cycle duration (when cell division would occur). However, based on early results, we eventually chose to use 5x this duration time.
 
@@ -42,7 +42,7 @@ $ python analysis/plot_11cells_csv.py pc_plot_11cells.csv
 We also added 5 additional cells to each end of the 11 cells, for a total of 21 cells, and compared the relaxation mechanics, of both the inner 11 cells and the outer 21, with other modeling frameworks.
 
 ```
-(base) M1P~/git/mechanics_relaxation$ python analysis/plot_21cells_crop.py 1440
+(base) M1P~/git/PhysiCell_monolayer$ python analysis/plot_21cells_crop.py 1440
 (generates pc_plot_21cells_width.csv)
 ```
 <img src="images/physicell_relax21.png" width=400/>

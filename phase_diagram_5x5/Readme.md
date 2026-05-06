@@ -2,11 +2,11 @@
 # Find the actual f_i, a_i values, given CDF percentiles
 
 ```
-(base) M1P~/git/OpenVT_monolayer_PhysiCell$ python beta/chosen_CDF_pct.py 100 cdf_1000cells_linear_growth  bg00_cells1000_   f_i
+(base) M1P~/git/PhysiCell_monolayer$ python beta/chosen_CDF_pct.py 100 cdf_1000cells_linear_growth  bg00_cells1000_   f_i
 -->
 x values for %s: 0.00000, 0.78565, 0.89119, 0.93058, 0.94846
 
-(base) M1P~/git/OpenVT_monolayer_PhysiCell$ python beta/chosen_CDF_pct.py 100 cdf_1000cells_linear_growth  bg00_cells1000_   a_i
+(base) M1P~/git/PhysiCell_monolayer$ python beta/chosen_CDF_pct.py 100 cdf_1000cells_linear_growth  bg00_cells1000_   a_i
 -->
 x values for %s: 0.49014, 0.98774, 0.99480, 0.99829, 0.99919
 
@@ -19,11 +19,22 @@ f_i:  x values for %s: 0.0, 0.696, 0.819, 0.895, 0.903
 a_i:  x values for %s: 0.0, 0.974, 0.987, 0.993, 0.995
 
 
+=== NEW: 5/5/26:  ~/git/PhysiCell_monolayer
+f_i: x values for %s: 0.00000, 0.79126, 0.89255, 0.93727, 0.97492
+a_i: x values for %s: 0.39255, 0.98795, 0.99490, 0.99861, 0.99990
+
+--> put these in param_sweep.py
+f_i:  x values for %s: 0.0, 0.791, 0.893, 0.937, 0.975
+a_i:  x values for %s: 0.0, 0.988, 0.995, 0.999, 1.0
+
 ```
 
 ---------------------
 ```
  python param_sweep.py ../project    # _no_diffusion
+ or, if we saved the executable with a different name:
+ python param_sweep.py ../project_10K    # _no_diffusion
+
 
 - when done:
  python ../beta/plot_all_new_frames.py

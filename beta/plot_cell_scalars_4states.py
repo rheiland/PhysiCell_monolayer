@@ -450,6 +450,8 @@ class Vis():
                     # blue: 44,123,182
 
                     # Roman's: c=0 dark blue (no contact inhibition), c=1 light blue (pressure CI), c=2 orange (surface CI), c=3 red (doubly inhibited)
+                    vmin = 0
+                    vmax = 3
                     cbar_name = from_list(None, [[44./255, 123./255, 182./255], [171./255,217./255,233./255], [253./255,174./255,97./255], [215./255,25./255,28./255]], len(self.discrete_variable))
                     print(f"cbar_name={cbar_name}, len(self.discrete_variable)={len(self.discrete_variable)}")
                     # Randy,rwh experiment
@@ -462,8 +464,8 @@ class Vis():
 
             # usual categorical colormap on matplotlib has at max 20 colors (using colorcet the colormap glasbey_bw has n colors )
             # cbar_name = from_list(None, cc.glasbey_bw, len(self.discrete_variable))
-            vmin = None
-            vmax = None
+            # vmin = None
+            # vmax = None
             # Change the values between 0 and number of possible values
             for i, value in enumerate(self.discrete_variable):
                 cell_scalar = cell_scalar.replace(value,i)
@@ -557,8 +559,8 @@ class Vis():
             else:
                 # cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name)
                 print("------- calling circles #2 with vmin,vmax=",vmin,vmax)   # rwh: doing this!
-                # cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name, vmin=vmin, vmax=vmax)
-                cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name, vmin=0, vmax=3)
+                cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name, vmin=vmin, vmax=vmax)
+                # cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name, vmin=0, vmax=3)
                 # cell_plot = self.circles(xvals,yvals, s=cell_radii, c=cell_scalar, cmap=cbar_name)
 
         else:  # semi-trransparent cell, but with (thicker) edge  (TODO: how to make totally transparent?)

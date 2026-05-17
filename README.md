@@ -63,6 +63,17 @@ For this part of the project, we ran 100 replicates of a growing monolayer, with
 <img src="images/cells1000_radii_gamma_beta.png" width="600" />
 (Thanks to Dr. Domenic Germano (@DGermano8) for the nice plotting scripts!)
 
+## Time to reach for 10000 cells for varying gamma, beta
+<img src="images/gamma_time_10K.png" width="500" />
+
+[gamma_time_10K.csv](results/gamma_time_10K.csv)
+
+<img src="images/beta_time_10K.png" width="500" />
+
+[beta_time_10K.csv](results/beta_time_10K.csv)
+
+
+
 ## 10000 cells with contact inhibition
 
 <img src="images/zoom_10K_f_i_max_inhibition.png" width="500" />

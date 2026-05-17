@@ -64,14 +64,12 @@ For this part of the project, we ran 100 replicates of a growing monolayer, with
 (Thanks to Dr. Domenic Germano (@DGermano8) for the nice plotting scripts!)
 
 ## Time to reach for 10000 cells for varying gamma, beta
-<img src="images/gamma_time_10K.png" width="500" />
+### gamma, beta from absolute range [0.0, 1.0]
+<img src="images/gamma_time_10K.png" width="400" /><img src="images/beta_time_10K.png" width="400" />
 
-[gamma_time_10K.csv](results/gamma_time_10K.csv)
+[gamma_time_10K.csv](results/gamma_time_10K.csv), [beta_time_10K.csv](results/beta_time_10K.csv)
 
-<img src="images/beta_time_10K.png" width="500" />
-
-[beta_time_10K.csv](results/beta_time_10K.csv)
-
+### gamma, beta from percentiles
 
 
 ## 10000 cells with contact inhibition

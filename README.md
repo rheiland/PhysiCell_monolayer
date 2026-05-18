@@ -70,6 +70,7 @@ For this part of the project, we ran 100 replicates of a growing monolayer, with
 [gamma_time_10K.csv](results/gamma_time_10K.csv), [beta_time_10K.csv](results/beta_time_10K.csv)
 
 ### gamma, beta from percentiles
+<img src="images/gamma_time_10K_pctiles.png" width="400" /><img src="images/beta_time_10K_pctiles.png" width="400" />
 
 
 ## 10000 cells with contact inhibition

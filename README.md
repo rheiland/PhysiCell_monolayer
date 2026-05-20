@@ -64,6 +64,7 @@ For this part of the project, we ran 100 replicates of a growing monolayer, with
 (Thanks to Dr. Domenic Germano (@DGermano8) for the nice plotting scripts!)
 
 ## Time to reach for 10000 cells for varying gamma, beta
+### *NOTE*: this data is still from the previous model, using "rest_length_factor"
 ### gamma, beta from absolute range [0.0, 1.0]
 <img src="images/beta_time_10K.png" width="400" /><img src="images/gamma_time_10K.png" width="400" />
 
@@ -86,9 +87,10 @@ Once we have the CDF for both gamma and beta, we choose fixed percentiles to map
 <img src="images/f_i_values_from_CDF.png" width="400" />  <img src="images/a_i_values_from_CDF.png" width="400" />
 
 These percentiles map into the following gamma and beta thresholds that will be used to compute the 5x5 phase diagram:
+<!-- 5/19/26 - after removing the rest_length_factor -->
 ```
-gamma_vals=  [0.0, 0.791, 0.893, 0.937, 0.975]
-beta_vals=  [0.0, 0.988, 0.995, 0.999, 1.0]
+gamma_vals=  [0.0, 0.639, 0.780, 0.880, 0.893]
+beta_vals=  [0.0, 0.962, 0.980, 0.990, 0.993]
 ```
 
 ## PhysiCell version

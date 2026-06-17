@@ -16,22 +16,20 @@ fig = plt.figure(figsize=(6,4))
 fig.subplots(1)
 ax0 = fig.gca()
 
-# gamma_vals = np.arange(0.0, 1.0, 0.01)   # 100 samples
-# print(gamma_vals)
+# beta_vals = np.arange(0.0, 1.0, 0.01)   # 100 samples
+# print("type(beta_vals)=", type(beta_vals))
+# print(beta_vals)
 
-# gamma_vals = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
-
+beta_vals = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
 tvals = []
-gvals = []
-eps = 0.0001
-for beta in [0.0]:
-    # for gamma in gamma_vals[:-1]:
-    # for gamma in gamma_vals:
-    # for gamma in np.arange(0.1, 0.95, 0.01):
-    for gamma in np.arange(0.1, 0.95+eps, 0.01):
-        g2 = int((gamma+eps) * 100) / 100
-        # folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
-        folder_name = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+bvals = []
+for gamma in [0.0]:
+    # idx = -1
+    # for gamma in np.arange(0.0, 1.05, 0.01):   # 100 samples
+    # for gamma in np.arange(0.0, 0.10, 0.043):   # 100 samples
+    # for beta in beta_vals[:-1]:
+    for beta in beta_vals:
+        folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
         if (not os.path.exists(folder_name)):
             print("--- ERROR missing dir: ", folder_name)
             sys.exit(-1)
@@ -39,8 +37,7 @@ for beta in [0.0]:
         label = "b:"+str(beta) + ",g:"+str(gamma)
         # idx += 1
 
-        # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
-        data_dir = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+        data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
         print('data_dir = ',data_dir)
 
         os.chdir(data_dir)
@@ -64,28 +61,27 @@ for beta in [0.0]:
 
         if final_time > 0:
             tvals.append(final_time)
-            # gvals.append(gamma)
-            gvals.append(g2)
+            bvals.append(beta)
         else:
             print(f"  --- bogus time {final_time} in {data_dir} ")
 
-file_out = f'gamma_time_10K.csv'
+file_out = f'beta_time_10K.csv'
 print("--> ",file_out)
 with open(file_out, "w", newline="") as file:
     writer = csv.writer(file)
-    writer.writerow(['gamma','time'])
-    for jdx in range(len(gvals)):
-        writer.writerow([gvals[jdx],tvals[jdx]])
+    writer.writerow(['beta','time'])
+    for jdx in range(len(bvals)):
+        writer.writerow([bvals[jdx],tvals[jdx]])
 
-# print("gvals=",gvals)
+# print("bvals=",bvals)
 # print("tvals=",tvals)
-ax0.plot(gvals,tvals,'.-', color='k')
+# ax0.plot(bvals,tvals)
+ax0.plot(bvals,tvals,'.-', color='k')
+# ax0.plot(bvals[:-2],tvals[:-2])
 
-ax0.set_title("beta=0", fontsize=12)
-ax0.set_xlabel('gamma')
+ax0.set_title("gamma=0", fontsize=12)
+ax0.set_xlabel('beta')
 ax0.set_xlim(0., 1.)
-# ax0.set_ylim(0., 100.)
 ax0.set_ylabel('Time (calibrated for 5T)')
 # ax0.savefig(data_dir + '.png')
 plt.show()
-

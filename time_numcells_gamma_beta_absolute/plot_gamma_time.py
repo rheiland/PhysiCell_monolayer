@@ -69,6 +69,48 @@ for beta in [0.0]:
         else:
             print(f"  --- bogus time {final_time} in {data_dir} ")
 
+
+    for gamma in [0.955]:
+        g2 = gamma
+        # folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        folder_name = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+        if (not os.path.exists(folder_name)):
+            print("--- ERROR missing dir: ", folder_name)
+            sys.exit(-1)
+
+        label = "b:"+str(beta) + ",g:"+str(gamma)
+        # idx += 1
+
+        # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        data_dir = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+        print('data_dir = ',data_dir)
+
+        os.chdir(data_dir)
+        xml_files = glob.glob('output*.xml')
+        os.chdir('..')
+        xml_files.sort()
+        # print('xml_files = ',xml_files)
+
+        ds_count = len(xml_files)
+        # print("ds_count = ",ds_count)
+        # ds_count = 192
+        # print("----- ds_count = ",ds_count)
+        mcds = [pyMCDS_cells(xml_files[i], data_dir) for i in range(ds_count)]
+
+        tval = np.linspace(0, mcds[-1].get_time(), ds_count)
+
+        tval /= cell_cycle_duration
+        # print("tval= ",tval)
+        final_time = tval[-1]
+        print(f'{data_dir} final time= {final_time}')
+
+        if final_time > 0:
+            tvals.append(final_time)
+            # gvals.append(gamma)
+            gvals.append(g2)
+        else:
+            print(f"  --- bogus time {final_time} in {data_dir} ")
+
 file_out = f'gamma_time_10K.csv'
 print("--> ",file_out)
 with open(file_out, "w", newline="") as file:
@@ -85,6 +127,7 @@ ax0.set_title("beta=0", fontsize=12)
 ax0.set_xlabel('gamma')
 ax0.set_xlim(0., 1.)
 # ax0.set_ylim(0., 100.)
+ax0.set_yscale('log')
 ax0.set_ylabel('Time (calibrated for 5T)')
 # ax0.savefig(data_dir + '.png')
 plt.show()

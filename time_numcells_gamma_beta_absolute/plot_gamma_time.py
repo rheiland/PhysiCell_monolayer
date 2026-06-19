@@ -208,7 +208,7 @@ with open(file_out, "w", newline="") as file:
 ax0.plot(gvals,tvals,'.-', color='k')
 
 ax0.set_title("beta=0", fontsize=12)
-ax0.set_xlabel('gamma')
+ax0.set_xlabel(r'$\gamma$')
 # ax0.set_xlim(0., 1.)
 ax0.set_xlim(left=-0.05, right=1.05)
 # ax0.set_ylim(0., 100.)

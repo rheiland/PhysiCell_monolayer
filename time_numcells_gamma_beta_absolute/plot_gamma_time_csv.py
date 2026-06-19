@@ -34,7 +34,7 @@ with open(csv_file, newline='') as f:
 # tvals *= 100
 fig, ax0 = plt.subplots()
 # ax0.plot(gvals, tvals, marker='.', markersize=3,color='k')
-ax0.plot(gvals, tvals, '.-', color='orange')
+ax0.plot(gvals, tvals, '.-', color='orange', marker='o', markersize=4)
 
 # ax0.set_xlim(left=0, right=100)
 ax0.set_xlim(left=-0.05, right=1.05)

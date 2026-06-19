@@ -25,6 +25,90 @@ tvals = []
 gvals = []
 eps = 0.0001
 for beta in [0.0]:
+
+    for gamma in [0.0]:
+        # folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        if (not os.path.exists(folder_name)):
+            print("--- ERROR missing dir: ", folder_name)
+            sys.exit(-1)
+
+        # label = "b:"+str(beta) + ",g:"+str(gamma)
+        # idx += 1
+
+        # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+        print('data_dir = ',data_dir)
+
+        os.chdir(data_dir)
+        xml_files = glob.glob('output*.xml')
+        os.chdir('..')
+        xml_files.sort()
+        # print('xml_files = ',xml_files)
+
+        ds_count = len(xml_files)
+        # print("ds_count = ",ds_count)
+        # ds_count = 192
+        # print("----- ds_count = ",ds_count)
+        mcds = [pyMCDS_cells(xml_files[i], data_dir) for i in range(ds_count)]
+
+        tval = np.linspace(0, mcds[-1].get_time(), ds_count)
+
+        tval /= cell_cycle_duration
+        # print("tval= ",tval)
+        final_time = tval[-1]
+        print(f'{data_dir} final time= {final_time}')
+
+        if final_time > 0:
+            tvals.append(final_time)
+            # gvals.append(gamma)
+            gvals.append(gamma)
+        else:
+            print(f"  --- bogus time {final_time} in {data_dir} ")
+
+
+    if True:   # do lower range?
+        for gamma in np.arange(0.01, 0.09+eps, 0.01):
+            g2 = int((gamma+eps) * 100) / 100
+            # folder_name = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+            folder_name = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+            if (not os.path.exists(folder_name)):
+                print("--- ERROR missing dir: ", folder_name)
+                sys.exit(-1)
+
+            # label = "b:"+str(beta) + ",g:"+str(g2)
+            # idx += 1
+
+            # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
+            data_dir = "out_num_cells_b" + str(beta) + "_g" + str(g2)
+            print('data_dir = ',data_dir)
+
+            os.chdir(data_dir)
+            xml_files = glob.glob('output*.xml')
+            os.chdir('..')
+            xml_files.sort()
+            # print('xml_files = ',xml_files)
+
+            ds_count = len(xml_files)
+            # print("ds_count = ",ds_count)
+            # ds_count = 192
+            # print("----- ds_count = ",ds_count)
+            mcds = [pyMCDS_cells(xml_files[i], data_dir) for i in range(ds_count)]
+
+            tval = np.linspace(0, mcds[-1].get_time(), ds_count)
+
+            tval /= cell_cycle_duration
+            # print("tval= ",tval)
+            final_time = tval[-1]
+            print(f'{data_dir} final time= {final_time}')
+
+            if final_time > 0:
+                tvals.append(final_time)
+                # gvals.append(gamma)
+                gvals.append(g2)
+            else:
+                print(f"  --- bogus time {final_time} in {data_dir} ")
+
     # for gamma in gamma_vals[:-1]:
     # for gamma in gamma_vals:
     # for gamma in np.arange(0.1, 0.95, 0.01):
@@ -36,7 +120,7 @@ for beta in [0.0]:
             print("--- ERROR missing dir: ", folder_name)
             sys.exit(-1)
 
-        label = "b:"+str(beta) + ",g:"+str(gamma)
+        # label = "b:"+str(beta) + ",g:"+str(g2)
         # idx += 1
 
         # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)
@@ -78,7 +162,7 @@ for beta in [0.0]:
             print("--- ERROR missing dir: ", folder_name)
             sys.exit(-1)
 
-        label = "b:"+str(beta) + ",g:"+str(gamma)
+        # label = "b:"+str(beta) + ",g:"+str(g2)
         # idx += 1
 
         # data_dir = "out_num_cells_b" + str(beta) + "_g" + str(gamma)

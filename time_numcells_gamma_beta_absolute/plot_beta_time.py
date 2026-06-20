@@ -70,8 +70,9 @@ for gamma in [0.0]:
             print(f"  --- bogus time {final_time} in {data_dir} ")
 
 
+    #----------------------------
     # extra runs
-    for beta in [0.996, 0.997, 0.998, 0.999]:
+    for beta in [0.996, 0.997, 0.998, 0.999, 0.9991, 0.9999]:
         b2 = beta
         folder_name = "out_num_cells_b" + str(b2) + "_g" + str(gamma)
         if (not os.path.exists(folder_name)):

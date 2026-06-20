@@ -548,10 +548,15 @@ class Vis():
         # self.title_str = '%d days, %d hrs, %d mins' % (days, hrs-days*24, mins-hrs*60)
         # self.title_str = f'\r{\beta}, T={int(calib_time)}'
         # self.title_str = f"$\beta$=($\gamma=0$)  {self.gamma_threshold:.3f}"
-        if self.gamma_threshold > 0.0:
-            self.title_str = fr"$\gamma$={self.gamma_threshold:.3f}, T={int(calib_time)}"
-        else:
+
+        if self.beta_threshold > 0.999:
+            self.title_str = fr"$\beta$={self.beta_threshold:.4f}, T={int(calib_time)}"
+        elif self.beta_threshold > 0.0:
             self.title_str = fr"$\beta$={self.beta_threshold:.3f}, T={int(calib_time)}"
+        elif self.gamma_threshold > 0.0:
+            self.title_str = fr"$\gamma$={self.gamma_threshold:.3f}, T={int(calib_time)}"
+        else:  # == 0
+            self.title_str = fr"rwh:$\beta$={self.beta_threshold:.3f}, T={int(calib_time)}"
         # self.title_str = '%f mins' % (total_min)  # rwh: custom
         # self.title_str += " (" + str(num_cells) + " agents)"
         # self.title_str += " (" + str(num_cells) + " cells)"

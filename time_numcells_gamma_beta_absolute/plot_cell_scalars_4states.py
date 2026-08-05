@@ -549,7 +549,8 @@ class Vis():
         # self.title_str = f'\r{\beta}, T={int(calib_time)}'
         # self.title_str = f"$\beta$=($\gamma=0$)  {self.gamma_threshold:.3f}"
 
-        if self.beta_threshold > 0.999:
+        # if self.beta_threshold > 0.999:
+        if self.beta_threshold > 0.988:
             self.title_str = fr"$\beta$={self.beta_threshold:.4f}, T={int(calib_time)}"
         elif self.beta_threshold > 0.0:
             self.title_str = fr"$\beta$={self.beta_threshold:.3f}, T={int(calib_time)}"

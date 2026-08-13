@@ -276,7 +276,8 @@ void custom_cell_rule( Cell* pCell, Phenotype& phenotype , double dt )
 
     pCell->custom_data["cell_ID"] = pCell->ID;
     pCell->custom_data["num_nbrs"] = pCell->state.neighbors.size();
-    pCell->custom_data["vel_mag"] = std::sqrt( pCell->previous_velocity[0]*pCell->previous_velocity[0] + pCell->previous_velocity[1]*pCell->previous_velocity[1] );
+    const std::vector<double> previous_velocity = pCell->get_previous_velocity();
+    pCell->custom_data["vel_mag"] = std::sqrt( previous_velocity[0] * previous_velocity[0] + previous_velocity[1] * previous_velocity[1] );
 
 
     // if (pCell->ID == 10 && pCell->position[0] >= 90.0)  // 90%, 90pct

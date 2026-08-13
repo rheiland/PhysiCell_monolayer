@@ -81,14 +81,14 @@ int monolayer_max_cells = 10000;   // can change to 1000 in .xml user params
 double draw_mean = 2.0;
 double draw_stddev = 0.4;
 bool normal_rand_flag = true;
-double rest_length_factor = 1.0;
+// double rest_length_factor = 1.0;
 
 void create_cell_types( void )
 {
 	beta_threshold = parameters.doubles("beta_threshold");  
 	gamma_threshold = parameters.doubles("gamma_threshold");  
     normal_rand_flag = parameters.bools("normal_random_flag");
-    rest_length_factor = parameters.doubles("rest_length_factor");
+    // rest_length_factor = parameters.doubles("rest_length_factor");
     if (parameters.ints.find_index("max_cells") != -1)
 	{
         monolayer_max_cells = parameters.ints("max_cells");
@@ -311,7 +311,8 @@ void generate_neighbor_list( Cell* pCell)
         pCell->state.neighbors.end(),
         [&](const Cell* nbr) {          // <-- replace CellType* with your actual type
             // double rest_length = (pCell->radius + nbr->radius) * rest_length_factor;
-            double rest_length = (pCell->phenotype.geometry.radius + nbr->phenotype.geometry.radius) * rest_length_factor;
+            // double rest_length = (pCell->phenotype.geometry.radius + nbr->phenotype.geometry.radius) * rest_length_factor;
+            double rest_length = (pCell->phenotype.geometry.radius + nbr->phenotype.geometry.radius);
             double dx = nbr->position[0] - pCell->position[0];
             double dy = nbr->position[1] - pCell->position[1];
             double distance = std::sqrt(dx*dx + dy*dy);
@@ -334,15 +335,16 @@ void custom_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt )
 
     pCell->velocity = {0.0, 0.0, 0.0};
     pCell->custom_data["num_nbrs"] = 0;
-    pCell->custom_data["rest_length"] = 0;
+    // pCell->custom_data["rest_length"] = 0;
 
     for (const auto& pNeighbor : pCell->state.neighbors)
     {
         // disregard cells too far away
         double r_b = pNeighbor->phenotype.geometry.radius;
 
-        double rest_length = (r_a + r_b) * rest_length_factor;
-        pCell->custom_data["rest_length"] = rest_length;
+        // double rest_length = (r_a + r_b) * rest_length_factor;
+        double rest_length = (r_a + r_b);
+        // pCell->custom_data["rest_length"] = rest_length;
 
         // Vector from A (pCell) toward B (pNeighbor)
         double dx = pNeighbor->position[0] - pCell->position[0];
@@ -375,7 +377,11 @@ void custom_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt )
 void custom_cell_rule( Cell* pCell, Phenotype& phenotype, double dt )
 {
     if ((*all_cells).size() < 2)
+    {
+        pCell->custom_data["f_i"] = 1.0;
+        pCell->custom_data["a_i"] = 1.0;
         return;
+    }
 
     pCell->custom_data["cell_ID"] =  pCell->ID;
     const std::vector<double> previous_velocity = pCell->get_previous_velocity();
@@ -420,22 +426,22 @@ void custom_cell_rule( Cell* pCell, Phenotype& phenotype, double dt )
     if (beta < 0.0)  beta = 0.0;
     pCell->custom_data["a_i"] = beta;
 
-    // {
-    //     // ------Note: don't do this block for the 1000 cell, no contact inhibition model!
-    //     pCell->custom_data["arrest_cycle"] =  0.0;  // rwh: improve?
-    //     pCell->custom_data["beta_or_gamma"] = 0;
-    //     if (beta < beta_threshold)
-    //     {
-    //         pCell->custom_data["arrest_cycle"] =  1.0;  // rwh: improve?
-    //         pCell->custom_data["beta_or_gamma"] += 1;
-    //     }
-    //     if (gamma < gamma_threshold)
-    //     {
-    //         pCell->custom_data["arrest_cycle"] =  1.0;  // rwh: improve?
-    //         pCell->custom_data["beta_or_gamma"] += 2;
-    //     }
-    //     return;
-    // }
+    {
+        // ------Note: don't do this block for the 1000 cell, no contact inhibition model!
+        pCell->custom_data["arrest_cycle"] =  0.0;  // rwh: improve?
+        pCell->custom_data["beta_or_gamma"] = 0;
+        if (beta < beta_threshold)
+        {
+            pCell->custom_data["arrest_cycle"] =  1.0;  // rwh: improve?
+            pCell->custom_data["beta_or_gamma"] += 1;
+        }
+        if (gamma < gamma_threshold)
+        {
+            pCell->custom_data["arrest_cycle"] =  1.0;  // rwh: improve?
+            pCell->custom_data["beta_or_gamma"] += 2;
+        }
+        return;
+    }
 
     return; 
 }
@@ -445,10 +451,10 @@ void custom_volume_function( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	static double growth_rate = parameters.doubles("cell_area_0") / parameters.doubles("cycle_duration");   // e.g., 78.54/(88.3 * 5=441.5) = 0.1779
 
-    if (pCell->custom_data["arrest_cycle"] >  0.0)  // optimize?
-    {
-        return;
-    }
+    // if (pCell->custom_data["arrest_cycle"] >  0.0)  // optimize?
+    // {
+    //     return;
+    // }
     pCell->custom_data["time_in_cycle"] +=  dt;
     pCell->custom_data["cell_area"] =  pCell->custom_data["cell_area_0"] +  (growth_rate * pCell->custom_data["time_in_cycle"] );
 
